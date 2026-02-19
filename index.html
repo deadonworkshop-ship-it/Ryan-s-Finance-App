@@ -214,7 +214,6 @@ input, select, textarea {
     <div class="row"><div>YTD INCOME</div><div id="glanceIncome" style="font-weight:900;">$0</div></div>
     <div class="row"><div>YTD TAXES</div><div id="glanceTaxes" style="font-weight:900;">$0</div></div>
   </div>
-
 </div>
 
 <div class="container page" id="pageBills" style="display:none;">
@@ -278,7 +277,7 @@ input, select, textarea {
     <div class="update-form" style="display:flex; gap:10px; margin-bottom:12px;">
       <select id="debtAccountSelect" style="flex:2;"></select>
       <input id="debtAmountInput" inputmode="decimal" placeholder="Balance" style="flex:1;" />
-      <button class="confirmBtn" style="width:auto;" onclick="updateTracker('debt')">UPDATE</button>
+      <button class="confirmBtn" style="width:auto;" onclick="updateSnapshotTracker('debt')">UPDATE</button>
     </div>
     <div class="row"><div>TOTAL OUTSTANDING DEBT</div><div id="debtTotal" class="big" style="margin-top:0;">$0.00</div></div>
     <div id="debtList" style="margin-top:16px;"></div>
@@ -296,7 +295,7 @@ input, select, textarea {
     <div class="update-form" style="display:flex; gap:10px; margin-bottom:12px;">
       <select id="investmentAccountSelect" style="flex:2;"></select>
       <input id="investmentAmountInput" inputmode="decimal" placeholder="Balance" style="flex:1;" />
-      <button class="confirmBtn" style="width:auto;" onclick="updateTracker('investment')">UPDATE</button>
+      <button class="confirmBtn" style="width:auto;" onclick="updateSnapshotTracker('investment')">UPDATE</button>
     </div>
     <div class="row"><div>TOTAL INVESTMENTS</div><div id="investmentTotal" class="big" style="margin-top:0;">$0.00</div></div>
     <div id="investmentList" style="margin-top:16px;"></div>
@@ -310,37 +309,64 @@ input, select, textarea {
 
 <div class="container page" id="pageIncome" style="display:none;">
   <div class="card">
-    <div class="row" style="border:none; padding:0;">
-      <div style="font-weight:800;">Income Tracker (YTD)</div>
+    <div style="font-weight:800; font-size:18px;">Income Tracker</div>
+  </div>
+  
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">ADD NEW INCOME TRANSACTION</div>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+      <select id="incomeAccountSelect" onchange="toggleIncomeMisc()"></select>
+      <input id="incomeMiscInput" placeholder="Describe source (e.g., Grandma check)" style="display:none;" />
+      <div style="display:flex; gap:10px;">
+        <input id="incomeAmountInput" inputmode="decimal" placeholder="Amount" style="flex:1;" />
+        <input id="incomeDateInput" type="date" style="flex:1;" />
+      </div>
+      <button class="confirmBtn" onclick="addFlowTransaction('income')">ADD INCOME</button>
     </div>
   </div>
+
   <div class="card">
-    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">UPDATE INCOME SOURCE</div>
-    <div class="update-form" style="display:flex; gap:10px; margin-bottom:12px;">
-      <select id="incomeAccountSelect" style="flex:2;"></select>
-      <input id="incomeAmountInput" inputmode="decimal" placeholder="Total" style="flex:1;" />
-      <button class="confirmBtn" style="width:auto;" onclick="updateTracker('income')">UPDATE</button>
+    <div class="row" style="border:none; padding-bottom:4px;">
+      <div style="font-size:12px;color:#9aa7b6;">MONTH-TO-DATE INCOME</div>
+      <div id="incomeTotal" class="big" style="margin-top:0;">$0.00</div>
     </div>
-    <div class="row"><div>TOTAL YTD INCOME</div><div id="incomeTotal" class="big" style="margin-top:0;">$0.00</div></div>
-    <div id="incomeList" style="margin-top:16px;"></div>
+    <div id="incomeCategoryTotals" style="margin-top:12px; padding-top:12px; border-top:1px solid #1b2533; font-size:14px; font-weight:700;"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">CHRONOLOGICAL LIST</div>
+    <div id="incomeTransactionList"></div>
   </div>
 </div>
 
 <div class="container page" id="pageTax" style="display:none;">
   <div class="card">
-    <div class="row" style="border:none; padding:0;">
-      <div style="font-weight:800;">Tax Withholdings (YTD)</div>
+    <div style="font-weight:800; font-size:18px;">Tax Withholdings</div>
+  </div>
+  
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">ADD NEW TAX TRANSACTION</div>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+      <select id="taxAccountSelect"></select>
+      <div style="display:flex; gap:10px;">
+        <input id="taxAmountInput" inputmode="decimal" placeholder="Amount" style="flex:1;" />
+        <input id="taxDateInput" type="date" style="flex:1;" />
+      </div>
+      <button class="confirmBtn" onclick="addFlowTransaction('tax')">ADD TAX ENTRY</button>
     </div>
   </div>
+
   <div class="card">
-    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">UPDATE TAX BUCKET</div>
-    <div class="update-form" style="display:flex; gap:10px; margin-bottom:12px;">
-      <select id="taxAccountSelect" style="flex:2;"></select>
-      <input id="taxAmountInput" inputmode="decimal" placeholder="Total" style="flex:1;" />
-      <button class="confirmBtn" style="width:auto;" onclick="updateTracker('tax')">UPDATE</button>
+    <div class="row" style="border:none; padding-bottom:4px;">
+      <div style="font-size:12px;color:#9aa7b6;">MONTH-TO-DATE TAXES</div>
+      <div id="taxTotal" class="big" style="margin-top:0;">$0.00</div>
     </div>
-    <div class="row"><div>TOTAL YTD TAXES</div><div id="taxTotal" class="big" style="margin-top:0;">$0.00</div></div>
-    <div id="taxList" style="margin-top:16px;"></div>
+    <div id="taxCategoryTotals" style="margin-top:12px; padding-top:12px; border-top:1px solid #1b2533; font-size:14px; font-weight:700;"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">CHRONOLOGICAL LIST</div>
+    <div id="taxTransactionList"></div>
   </div>
 </div>
 
@@ -400,28 +426,13 @@ const DEFAULT_CATEGORIES = {
   ],
   income: ["USAF", "VA", "United", "UC Health", "FastCap", "Miscellaneous"],
   tax: [
-    "Ryan USAF State", "Ryan USAF Federal", "Ryan United State", 
-    "Ryan United Federal", "Ashley State", "Ashley Federal", "Extra Federal"
+    "USAF State", "USAF Federal", "UC Health State", "UC Health Federal", 
+    "United State", "United Federal", "Extra State", "Extra Federal"
   ]
 };
 
-// ==========================================
-// 🚨 YOUR PRE-LOADED FEBRUARY BALANCES 🚨
-// ==========================================
-const PRELOADED_BALANCES = {
-  investment: {
-    "TSP": 279092.82, "Ryan Roth IRA - Decade Perspective": 126288.16, "Ashley Schwab Roth IRA": 64048.44, 
-    "Ashley Schwab Rollover IRA": 37224.24, "Ryan Schwab Brokerage": 80062.70, "Ryan Schwab Brokerage 2": 49340.98, 
-    "Ryan PCRA Trust - Bonfire": 102100.97, "UC Health Fidelity": 69699.20, "Ashley Old IRA": 18368.37, "Robinhood": 45451.93
-  },
-  debt: {
-    "House Mortgage": 550000.00, "Land Mortgage": 91750.34, "Tesla Loan": 30918.79, "Highlander Loan": 5581.51, 
-    "AMEX Bonvoy Card": 3249.74, "Amazon Prime Business Credit Card": 1471.18, "Amazon Prime Credit Card": 251.67
-  }
-};
-
-// ===== 1. CORE STATE & STORAGE (v7 - RETAINED) =====
-const STORAGE_PREFIX = "bills_ops_v7_";
+// ===== 1. CORE STATE & STORAGE (v9 - TRANSACTION LEDGER UPDATE) =====
+const STORAGE_PREFIX = "bills_ops_v9_";
 const getStorage = (key, defaultVal) => {
   try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + key)) || defaultVal; } 
   catch { return defaultVal; }
@@ -429,18 +440,16 @@ const getStorage = (key, defaultVal) => {
 const setStorage = (key, val) => localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(val));
 
 function initTrackersForMonth(yyyyMM) {
-  ['investment', 'debt', 'income', 'tax'].forEach(tracker => {
+  // Snapshot Trackers (Investments, Debt) -> Uses {}
+  ['investment', 'debt'].forEach(tracker => {
     const key = `${tracker}_${yyyyMM}`;
     let data = getStorage(key, null);
     
     if (!data) {
-      // Find previous month data to inherit
       let availableMonths = [];
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k.startsWith(STORAGE_PREFIX + tracker + "_")) {
-          availableMonths.push(k.split(tracker + "_")[1]);
-        }
+        if (k.startsWith(STORAGE_PREFIX + tracker + "_")) availableMonths.push(k.split(tracker + "_")[1]);
       }
       availableMonths.sort();
       let prevMonth = availableMonths.reverse().find(m => m < yyyyMM);
@@ -450,17 +459,33 @@ function initTrackersForMonth(yyyyMM) {
       } else {
         data = {};
         DEFAULT_CATEGORIES[tracker].forEach(cat => data[cat] = 0);
-        if (yyyyMM === "2026-02" && PRELOADED_BALANCES[tracker]) {
-          Object.keys(PRELOADED_BALANCES[tracker]).forEach(k => data[k] = PRELOADED_BALANCES[tracker][k]);
-        }
       }
       setStorage(key, data);
     }
-    
     const select = document.getElementById(`${tracker}AccountSelect`);
     if (select) {
       select.innerHTML = "";
       Object.keys(data).forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
+      });
+    }
+  });
+
+  // Flow Trackers (Income, Tax) -> Uses [] arrays for individual transactions
+  ['income', 'tax'].forEach(tracker => {
+    const key = `${tracker}_${yyyyMM}`;
+    let data = getStorage(key, null);
+    if (!data || !Array.isArray(data)) {
+      data = []; // Fresh array for transactions
+      setStorage(key, data);
+    }
+    const select = document.getElementById(`${tracker}AccountSelect`);
+    if (select) {
+      select.innerHTML = "";
+      DEFAULT_CATEGORIES[tracker].forEach(cat => {
         const opt = document.createElement("option");
         opt.value = cat;
         opt.textContent = cat;
@@ -491,7 +516,6 @@ function initActiveMonthUI() {
   const currentYear = d.getFullYear();
   const currentMonth = String(d.getMonth() + 1).padStart(2, '0');
 
-  // Populate Years
   yearSelect.innerHTML = "";
   for (let y = 2024; y <= currentYear + 2; y++) {
     const opt = document.createElement("option");
@@ -501,7 +525,6 @@ function initActiveMonthUI() {
   }
   yearSelect.value = currentYear;
 
-  // Populate Months
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   monthSelect.innerHTML = "";
   monthNames.forEach((name, i) => {
@@ -517,7 +540,8 @@ function initActiveMonthUI() {
     initTrackersForMonth(getActiveMonth()); 
     renderBills();
     renderDashboard();
-    ['investment', 'debt', 'income', 'tax'].forEach(id => renderTrackerList(id));
+    ['investment', 'debt'].forEach(id => renderSnapshotList(id));
+    ['income', 'tax'].forEach(id => renderFlowList(id));
     if (document.getElementById("pageInvestment").style.display === "block") {
       setTimeout(renderInvestmentGraph, 10);
     }
@@ -565,7 +589,6 @@ function renderDashboard() {
   const bal = parseFloat(getStorage("current_balance", 0));
   const updatedTs = getStorage("balance_updated_at", null);
   
-  // 1. Balance & Timestamp
   document.getElementById("currentBalance").textContent = formatMoney(bal);
   if (updatedTs) {
     const diffMins = Math.floor((Date.now() - updatedTs) / 60000);
@@ -577,12 +600,10 @@ function renderDashboard() {
   const activeMonth = getActiveMonth();
   const monthBills = getStorage("bills", []).filter(b => b.month === activeMonth);
   
-  // 2. Phase-Aware Math 
   const today = new Date();
   const sysPhase = today.getDate() <= 15 ? 1 : 2;
   document.getElementById("currentPhaseBadge").textContent = `TODAY: PHASE ${sysPhase} ${sysPhase===1 ? "(1st - 15th)" : "(16th - End)"}`;
 
-  // Only target the unpaid bills for the active system phase
   const targetPhaseBills = monthBills.filter(b => b.phase === sysPhase && !b.paid);
   const unpaidTargetTotal = targetPhaseBills.reduce((sum, b) => sum + b.amount, 0);
 
@@ -594,20 +615,16 @@ function renderDashboard() {
   availEl.textContent = formatMoney(available);
   availEl.style.color = available >= 0 ? "#2bd576" : "#ff5c5c"; 
 
-  // 3. Progress Bar Math
   const totalMonthBills = monthBills.reduce((s, b) => s + b.amount, 0);
   const paidMonthBills = monthBills.filter(b => b.paid).reduce((s, b) => s + b.amount, 0);
   const pct = totalMonthBills === 0 ? 0 : Math.round((paidMonthBills / totalMonthBills) * 100);
-  
   document.getElementById("billProgressBar").style.width = `${pct}%`;
   document.getElementById("billProgressText").textContent = `${pct}% Paid (${formatMoney(paidMonthBills)} / ${formatMoney(totalMonthBills)})`;
 
-  // 4. Next 3 Bills Preview
-  const unpaidAll = monthBills.filter(b => !b.paid).sort((a,b) => a.phase - b.phase); // Phase 1 bills first
+  const unpaidAll = monthBills.filter(b => !b.paid).sort((a,b) => a.phase - b.phase); 
   const next3 = unpaidAll.slice(0, 3);
   const nextList = document.getElementById("nextBillsList");
   nextList.innerHTML = "";
-  
   if(next3.length === 0) {
     nextList.innerHTML = "<div style='color:#2bd576; font-size:14px; font-weight:800; padding-top:8px;'>All bills paid for the month!</div>";
   } else {
@@ -625,16 +642,29 @@ function renderDashboard() {
     });
   }
 
-  // 5. Quick Glance Snapshot Totals
-  const sumTracker = (tracker) => {
+  // Quick Glance: Snapshot logic vs YTD Flow logic
+  const sumSnapshot = (tracker) => {
     const data = getStorage(`${tracker}_${activeMonth}`, {});
     return Object.values(data).reduce((s, v) => s + v, 0);
   };
   
-  document.getElementById("glancePortfolio").textContent = formatMoney(sumTracker('investment'));
-  document.getElementById("glanceDebt").textContent = formatMoney(sumTracker('debt'));
-  document.getElementById("glanceIncome").textContent = formatMoney(sumTracker('income'));
-  document.getElementById("glanceTaxes").textContent = formatMoney(sumTracker('tax'));
+  const sumFlowYTD = (tracker) => {
+    const year = activeMonth.split('-')[0];
+    let total = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith(`${STORAGE_PREFIX}${tracker}_${year}-`)) {
+        const data = JSON.parse(localStorage.getItem(key)) || [];
+        total += data.reduce((s, item) => s + item.amount, 0);
+      }
+    }
+    return total;
+  };
+  
+  document.getElementById("glancePortfolio").textContent = formatMoney(sumSnapshot('investment'));
+  document.getElementById("glanceDebt").textContent = formatMoney(sumSnapshot('debt'));
+  document.getElementById("glanceIncome").textContent = formatMoney(sumFlowYTD('income'));
+  document.getElementById("glanceTaxes").textContent = formatMoney(sumFlowYTD('tax'));
 }
 
 // ===== 6. MONTHLY BILLS LOGIC =====
@@ -676,7 +706,6 @@ function showAddBillForm() {
   document.getElementById("addDebtBillForm").style.display = "none"; 
 }
 function hideAddBillForm() { document.getElementById("addBillForm").style.display = "none"; }
-
 function saveNewBill() {
   const name = document.getElementById("newBillName").value;
   const amount = parseFloat(document.getElementById("newBillAmount").value || 0);
@@ -696,7 +725,6 @@ function showAddDebtBillForm() {
   document.getElementById("addBillForm").style.display = "none"; 
 }
 function hideAddDebtBillForm() { document.getElementById("addDebtBillForm").style.display = "none"; }
-
 function saveNewDebtBill() {
   const name = document.getElementById("newDebtBillName").value;
   const amount = parseFloat(document.getElementById("newDebtBillAmount").value || 0);
@@ -723,8 +751,9 @@ function deleteBill(id) {
   renderBills();
 }
 
-// ===== 7. SNAPSHOT TRACKER LOGIC (MONTHLY SCOPED) =====
-function updateTracker(trackerId) {
+
+// ===== 7. SNAPSHOT TRACKER LOGIC (Debt, Investments) =====
+function updateSnapshotTracker(trackerId) {
   const activeMonth = getActiveMonth();
   const account = document.getElementById(`${trackerId}AccountSelect`).value;
   const amount = parseFloat(document.getElementById(`${trackerId}AmountInput`).value || 0);
@@ -735,13 +764,12 @@ function updateTracker(trackerId) {
   setStorage(key, data);
   
   document.getElementById(`${trackerId}AmountInput`).value = "";
-  renderTrackerList(trackerId);
-  
+  renderSnapshotList(trackerId);
   if (trackerId === 'investment') setTimeout(renderInvestmentGraph, 10);
-  renderDashboard(); // Updates Quick Glance on home screen instantly
+  renderDashboard(); 
 }
 
-function renderTrackerList(trackerId) {
+function renderSnapshotList(trackerId) {
   const activeMonth = getActiveMonth();
   const data = getStorage(`${trackerId}_${activeMonth}`, {});
   const list = document.getElementById(`${trackerId}List`);
@@ -756,17 +784,115 @@ function renderTrackerList(trackerId) {
     total += amt;
     const row = document.createElement("div");
     row.className = "row";
-    row.innerHTML = `
-      <div style="font-weight:800;">${acc}</div>
-      <div>${formatMoney(amt)}</div>
-    `;
+    row.innerHTML = `<div style="font-weight:800;">${acc}</div><div>${formatMoney(amt)}</div>`;
     list.appendChild(row);
   });
-  
   totalEl.textContent = formatMoney(total);
 }
 
-// ===== 8. INVESTMENT GRAPH GENERATOR (WITH YEAR LABELS) =====
+// ===== 8. FLOW TRACKER LOGIC (Income, Taxes as Ledgers) =====
+function toggleIncomeMisc() {
+  const sel = document.getElementById("incomeAccountSelect");
+  const misc = document.getElementById("incomeMiscInput");
+  if(sel && misc) misc.style.display = sel.value === "Miscellaneous" ? "block" : "none";
+}
+
+function addFlowTransaction(trackerId) {
+  const activeMonth = getActiveMonth();
+  const account = document.getElementById(`${trackerId}AccountSelect`).value;
+  const amount = parseFloat(document.getElementById(`${trackerId}AmountInput`).value || 0);
+  const date = document.getElementById(`${trackerId}DateInput`).value;
+  
+  let desc = "";
+  if(trackerId === 'income' && account === 'Miscellaneous') {
+    desc = document.getElementById(`incomeMiscInput`).value;
+  }
+
+  if(!date || amount <= 0) return alert("Please enter a valid amount and date.");
+
+  const key = `${trackerId}_${activeMonth}`;
+  const data = getStorage(key, []);
+  
+  data.push({ id: Date.now(), account, desc, amount, date });
+  data.sort((a, b) => a.date.localeCompare(b.date)); // Sort chronologically
+  
+  setStorage(key, data);
+  
+  document.getElementById(`${trackerId}AmountInput`).value = "";
+  if(trackerId === 'income') document.getElementById(`incomeMiscInput`).value = "";
+  
+  renderFlowList(trackerId);
+  renderDashboard();
+}
+
+function deleteFlowTransaction(trackerId, id) {
+  if(!confirm("Delete this entry?")) return;
+  const key = `${trackerId}_${getActiveMonth()}`;
+  let data = getStorage(key, []);
+  data = data.filter(t => t.id !== id);
+  setStorage(key, data);
+  renderFlowList(trackerId);
+  renderDashboard();
+}
+
+function renderFlowList(trackerId) {
+  const activeMonth = getActiveMonth();
+  const data = getStorage(`${trackerId}_${activeMonth}`, []);
+  
+  const list = document.getElementById(`${trackerId}TransactionList`);
+  const totalEl = document.getElementById(`${trackerId}Total`);
+  const catTotalsEl = document.getElementById(`${trackerId}CategoryTotals`);
+  
+  if(!list) return;
+  list.innerHTML = "";
+  
+  let grandTotal = 0;
+  let catTotals = {};
+  
+  // Set up categories so they appear in order even if 0
+  DEFAULT_CATEGORIES[trackerId].forEach(c => catTotals[c] = 0);
+  
+  if(data.length === 0) {
+    list.innerHTML = "<div style='color:#9aa7b6; font-size:12px; margin-top:10px;'>No entries recorded for this month.</div>";
+  } else {
+    data.forEach(txn => {
+      grandTotal += txn.amount;
+      if(catTotals[txn.account] !== undefined) catTotals[txn.account] += txn.amount;
+      else catTotals[txn.account] = txn.amount;
+      
+      const title = txn.desc ? `${txn.account} (${txn.desc})` : txn.account;
+      // Format date nicely (e.g. Feb 14)
+      const dStr = new Date(txn.date + "T00:00:00").toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+      
+      list.innerHTML += `
+        <div class="row" style="align-items:center;">
+          <div style="flex:1;">
+            <div style="font-weight:800;">${title}</div>
+            <div style="font-size:11px; color:#2aa6ff; font-weight:bold; margin-top:2px;">${dStr}</div>
+          </div>
+          <div style="font-weight:900; font-size:16px;">${formatMoney(txn.amount)}</div>
+          <button class="cancelBtn" style="border:none; padding:8px; font-weight:bold; font-size:16px;" onclick="deleteFlowTransaction('${trackerId}', ${txn.id})">✕</button>
+        </div>
+      `;
+    });
+  }
+  
+  if(totalEl) totalEl.textContent = formatMoney(grandTotal);
+  
+  if(catTotalsEl) {
+    catTotalsEl.innerHTML = "<div style='margin-bottom:8px; color:#9aa7b6; font-size:11px;'>SUBTOTALS BY SOURCE</div>";
+    let hasCategories = false;
+    Object.keys(catTotals).forEach(c => {
+      if(catTotals[c] > 0) {
+        hasCategories = true;
+        catTotalsEl.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:6px; font-weight:600;"><span>${c}</span><span>${formatMoney(catTotals[c])}</span></div>`;
+      }
+    });
+    if(!hasCategories) catTotalsEl.innerHTML += "<div style='font-weight:500;'>--</div>";
+  }
+}
+
+// ===== 9. INVESTMENT GRAPH GENERATOR =====
 function renderInvestmentGraph() {
   const container = document.getElementById("investmentGraphContainer");
   if (!container) return;
@@ -828,7 +954,7 @@ function renderInvestmentGraph() {
   `;
 }
 
-// ===== 9. NAVIGATION & INIT =====
+// ===== 10. NAVIGATION & INIT =====
 function toggleMenu() {
   const back = document.getElementById("menuBackdrop");
   const drawer = document.getElementById("menuDrawer");
@@ -838,23 +964,18 @@ function toggleMenu() {
 }
 
 function navigateTo(pageId) {
-  // Hide all pages
   document.querySelectorAll(".page").forEach(p => p.style.display = "none");
   const target = `page${pageId.charAt(0).toUpperCase() + pageId.slice(1)}`;
   const el = document.getElementById(target);
   if (el) el.style.display = "block";
   else document.getElementById("pageHome").style.display = "block";
   
-  // FORCE CLOSE the menu instead of toggling it blindly
   document.getElementById("menuDrawer").style.display = "none";
   document.getElementById("menuBackdrop").style.display = "none";
   
-  if (['debt', 'investment', 'income', 'tax'].includes(pageId)) {
-    renderTrackerList(pageId);
-    if (pageId === 'investment') {
-      setTimeout(renderInvestmentGraph, 10);
-    }
-  }
+  if (['debt', 'investment'].includes(pageId)) renderSnapshotList(pageId);
+  if (['income', 'tax'].includes(pageId)) renderFlowList(pageId);
+  if (pageId === 'investment') setTimeout(renderInvestmentGraph, 10);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -862,6 +983,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialMonth = getActiveMonth();
   initTrackersForMonth(initialMonth);
   renderBills();
+  
+  // Set default dates for the new transaction inputs
+  const todayStr = new Date().toISOString().split('T')[0];
+  const incDate = document.getElementById("incomeDateInput");
+  if(incDate) incDate.value = todayStr;
+  const taxDate = document.getElementById("taxDateInput");
+  if(taxDate) taxDate.value = todayStr;
 });
 </script>
 </body>
