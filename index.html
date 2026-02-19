@@ -107,7 +107,7 @@ input, select, textarea {
   width: 100%;
 }
 
-/* Toggle Switch for Bills */
+/* Toggle Switch */
 .toggleSwitch {
   appearance: none; -webkit-appearance: none;
   width: 48px; height: 26px;
@@ -150,12 +150,15 @@ input, select, textarea {
     <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">Navigate</div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('home')"><div>Home</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('bills')"><div>Monthly Bills</div><div>›</div></div>
+    <div class="row" style="cursor:pointer;" onclick="navigateTo('expenses')"><div>Upcoming Expenses</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('debt')"><div>Debt Snapshot</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('investment')"><div>Investments</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('savings')"><div>Savings Accounts</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('networth')"><div>Net Worth Tracker</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('income')"><div>Income Tracker</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('tax')"><div>Tax Withholdings</div><div>›</div></div>
+    <div class="row" style="cursor:pointer;" onclick="navigateTo('retirement')"><div>Retirement Contributions</div><div>›</div></div>
+    <div class="row" style="cursor:pointer;" onclick="navigateTo('report')"><div>Yearly Rollup Report</div><div>›</div></div>
   </div>
 </div>
 
@@ -216,6 +219,7 @@ input, select, textarea {
     <div class="row"><div>TOTAL DEBT</div><div id="glanceDebt" style="font-weight:900;">$0</div></div>
     <div class="row"><div>YTD INCOME</div><div id="glanceIncome" style="font-weight:900;">$0</div></div>
     <div class="row"><div>YTD TAXES</div><div id="glanceTaxes" style="font-weight:900;">$0</div></div>
+    <div class="row"><div>YTD RETIREMENT</div><div id="glanceRetirement" style="font-weight:900; color:#2aa6ff;">$0</div></div>
   </div>
 </div>
 
@@ -266,6 +270,34 @@ input, select, textarea {
   <div class="card">
     <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">PHASE 2 (16th - End)</div>
     <div id="phase2BillsList"></div>
+  </div>
+</div>
+
+<div class="container page" id="pageExpenses" style="display:none;">
+  <div class="card">
+    <div class="row" style="border:none; padding:0;">
+      <div style="font-weight:800;">Upcoming Expenses</div>
+      <button class="btnSmall" onclick="showExpenseForm()">+ EXPENSE</button>
+    </div>
+  </div>
+
+  <div class="card" id="addExpenseForm" style="display:none; flex-direction:column; gap:10px;">
+    <div style="font-size:12px;color:#ff5c5c;font-weight:800;">ADD LARGE EXPENSE</div>
+    <input id="newExpenseName" placeholder="Expense (e.g., Vacation, Roof Repair)" />
+    <input id="newExpenseAmount" inputmode="decimal" placeholder="Amount" />
+    <div style="display:flex; gap:10px;">
+      <button class="confirmBtn" style="flex:1; border-color:#ff5c5c; color:#ff5c5c;" onclick="saveExpense()">SAVE</button>
+      <button class="cancelBtn" style="flex:1;" onclick="hideExpenseForm()">CANCEL</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">GLOBAL EXPENSE LIST</div>
+    <div id="expensesList"></div>
+    <div class="row" style="border-top:1px solid #1b2533; padding-top:12px; margin-top:12px;">
+       <div style="font-weight:900;">UNPAID TOTAL</div>
+       <div id="expensesTotal" style="font-weight:900; color:#ff5c5c;">$0.00</div>
+    </div>
   </div>
 </div>
 
@@ -434,6 +466,52 @@ input, select, textarea {
   </div>
 </div>
 
+<div class="container page" id="pageRetirement" style="display:none;">
+  <div class="card">
+    <div style="font-weight:800; font-size:18px;">Retirement Contributions</div>
+  </div>
+  
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">LOG CONTRIBUTION</div>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+      <select id="retirementAccountSelect"></select>
+      <div style="display:flex; gap:10px;">
+        <input id="retirementAmountInput" inputmode="decimal" placeholder="Amount" style="flex:1;" />
+        <input id="retirementDateInput" type="date" style="flex:1;" />
+      </div>
+      <button class="confirmBtn" onclick="addFlowTransaction('retirement')">ADD CONTRIBUTION</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="border:none; padding-bottom:4px;">
+      <div style="font-size:12px;color:#9aa7b6;">MONTHLY COMPLETE TOTAL</div>
+      <div id="retirementTotal" class="big" style="margin-top:0; color:#2aa6ff;">$0.00</div>
+    </div>
+    <div id="retirementCategoryTotals" style="margin-top:12px; padding-top:12px; border-top:1px solid #1b2533; font-size:14px; font-weight:700;"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">CHRONOLOGICAL LIST</div>
+    <div id="retirementTransactionList"></div>
+  </div>
+</div>
+
+<div class="container page" id="pageReport" style="display:none;">
+  <div class="card">
+    <div class="row" style="border:none; padding:0;">
+      <div style="font-weight:800; font-size:18px;">Yearly Rollup Report</div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">SELECT REPORT YEAR</div>
+    <select id="reportYearSelect" style="width:100%; padding:14px;" onchange="generateYearlyReport()"></select>
+  </div>
+  
+  <div id="reportContainer"></div>
+</div>
+
 <div id="balBackdrop" onclick="closeBalanceModal()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:90;"></div>
 <div id="balModal" style="display:none; position:fixed; inset:0; z-index:100; padding:16px; align-items:center; justify-content:center;">
   <div style="width:100%; max-width:420px; background:#101722; border:1px solid #1b2533; border-radius:14px; overflow:hidden;">
@@ -498,6 +576,14 @@ const DEFAULT_CATEGORIES = {
   tax: [
     "USAF State", "USAF Federal", "UC Health State", "UC Health Federal", 
     "United State", "United Federal", "Extra State", "Extra Federal"
+  ],
+  retirement: [
+    "Ryan Roth IRA - Decade Perspective", "Ryan Traditional IRA - Decade Perspective", 
+    "Ryan Roth IRA - LRC", "Ryan Traditional IRA - LRC", 
+    "Ryan Roth TSP", "Ryan Traditional TSP", 
+    "Ryan Roth PRAP", "Ryan Traditional PRAP", 
+    "Ashley Traditional IRA - LRC", "Ashley Roth IRA - LRC", 
+    "Ashley 403b", "Ashley 457b", "Ashley 401a"
   ]
 };
 
@@ -522,8 +608,8 @@ const PRELOADED_BALANCES = {
   }
 };
 
-// ===== 1. CORE STATE & STORAGE (v10 - SAVINGS & NET WORTH UPDATE) =====
-const STORAGE_PREFIX = "bills_ops_v10_";
+// ===== 1. CORE STATE & STORAGE (v11 - RETAINED) =====
+const STORAGE_PREFIX = "bills_ops_v11_";
 const getStorage = (key, defaultVal) => {
   try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + key)) || defaultVal; } 
   catch { return defaultVal; }
@@ -531,7 +617,6 @@ const getStorage = (key, defaultVal) => {
 const setStorage = (key, val) => localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(val));
 
 function initTrackersForMonth(yyyyMM) {
-  // Snapshot Trackers (Investments, Debt, Savings, Assumptions)
   ['investment', 'debt', 'savings', 'assumptions'].forEach(tracker => {
     const key = `${tracker}_${yyyyMM}`;
     let data = getStorage(key, null);
@@ -568,8 +653,7 @@ function initTrackersForMonth(yyyyMM) {
     }
   });
 
-  // Flow Trackers (Income, Tax) 
-  ['income', 'tax'].forEach(tracker => {
+  ['income', 'tax', 'retirement'].forEach(tracker => {
     const key = `${tracker}_${yyyyMM}`;
     let data = getStorage(key, null);
     if (!data || !Array.isArray(data)) {
@@ -604,38 +688,47 @@ function initTrackersForMonth(yyyyMM) {
 function initActiveMonthUI() {
   const yearSelect = document.getElementById("activeYearSelect");
   const monthSelect = document.getElementById("activeMonthSelect");
-  if (!yearSelect || !monthSelect) return;
+  const reportYearSelect = document.getElementById("reportYearSelect");
 
   const d = new Date();
   const currentYear = d.getFullYear();
   const currentMonth = String(d.getMonth() + 1).padStart(2, '0');
 
-  yearSelect.innerHTML = "";
-  for (let y = 2024; y <= currentYear + 2; y++) {
-    const opt = document.createElement("option");
-    opt.value = y;
-    opt.textContent = y;
-    yearSelect.appendChild(opt);
-  }
-  yearSelect.value = currentYear;
+  const populateYears = (sel, defaultVal) => {
+    if(!sel) return;
+    sel.innerHTML = "";
+    for (let y = 2024; y <= currentYear + 2; y++) {
+      const opt = document.createElement("option");
+      opt.value = y;
+      opt.textContent = y;
+      sel.appendChild(opt);
+    }
+    sel.value = defaultVal;
+  };
 
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  monthSelect.innerHTML = "";
-  monthNames.forEach((name, i) => {
-    const val = String(i + 1).padStart(2, '0');
-    const opt = document.createElement("option");
-    opt.value = val;
-    opt.textContent = name;
-    monthSelect.appendChild(opt);
-  });
-  monthSelect.value = currentMonth;
+  populateYears(yearSelect, currentYear);
+  populateYears(reportYearSelect, currentYear);
+
+  if(monthSelect) {
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    monthSelect.innerHTML = "";
+    monthNames.forEach((name, i) => {
+      const val = String(i + 1).padStart(2, '0');
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = name;
+      monthSelect.appendChild(opt);
+    });
+    monthSelect.value = currentMonth;
+  }
 
   const handleChange = () => {
     initTrackersForMonth(getActiveMonth()); 
     renderBills();
+    renderExpenses();
     renderDashboard();
     ['investment', 'debt', 'savings', 'assumptions'].forEach(id => renderSnapshotList(id));
-    ['income', 'tax'].forEach(id => renderFlowList(id));
+    ['income', 'tax', 'retirement'].forEach(id => renderFlowList(id));
     renderNetWorth();
     
     if (document.getElementById("pageInvestment").style.display === "block") setTimeout(() => renderSnapshotGraph('investment', 'investmentGraphContainer', '#2aa6ff'), 10);
@@ -644,8 +737,8 @@ function initActiveMonthUI() {
     if (document.getElementById("pageNetworth").style.display === "block") setTimeout(renderNetWorthGraph, 10);
   };
 
-  yearSelect.addEventListener("change", handleChange);
-  monthSelect.addEventListener("change", handleChange);
+  if(yearSelect) yearSelect.addEventListener("change", handleChange);
+  if(monthSelect) monthSelect.addEventListener("change", handleChange);
 }
 
 function getActiveMonth() { 
@@ -766,6 +859,7 @@ function renderDashboard() {
   document.getElementById("glanceDebt").textContent = formatMoney(totalLiabilities);
   document.getElementById("glanceIncome").textContent = formatMoney(sumFlowYTD('income'));
   document.getElementById("glanceTaxes").textContent = formatMoney(sumFlowYTD('tax'));
+  document.getElementById("glanceRetirement").textContent = formatMoney(sumFlowYTD('retirement'));
 }
 
 function renderNetWorth() {
@@ -866,7 +960,69 @@ function deleteBill(id) {
   renderBills();
 }
 
-// ===== 7. SNAPSHOT TRACKER LOGIC =====
+// ===== 7. GLOBAL EXPENSES LOGIC =====
+function renderExpenses() {
+  const exps = getStorage("global_expenses", []);
+  const list = document.getElementById("expensesList");
+  if(!list) return;
+  list.innerHTML = "";
+  let totalUnpaid = 0;
+  
+  if(exps.length === 0) {
+    list.innerHTML = "<div style='color:#9aa7b6; font-size:12px; margin-top:10px;'>No upcoming expenses logged.</div>";
+  }
+  
+  exps.forEach(e => {
+    if (!e.paid) totalUnpaid += e.amount;
+    const textClass = e.paid ? "paid-text" : "";
+    list.innerHTML += `
+      <div style="display:flex; align-items:center; width:100%; gap:12px;" class="row">
+        <input type="checkbox" class="toggleSwitch" ${e.paid ? 'checked' : ''} onchange="toggleExpensePaid(${e.id})" style="flex-shrink:0;">
+        <div style="flex:1; display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-weight:800; font-size:16px;" class="${textClass}">${e.name}</div>
+          <div style="font-weight:900; font-size:18px;" class="${textClass}">${formatMoney(e.amount)}</div>
+        </div>
+        <button class="cancelBtn" style="border:none; padding:8px; font-size:16px; font-weight:bold; flex-shrink:0;" onclick="deleteExpense(${e.id})">✕</button>
+      </div>
+    `;
+  });
+  const tEl = document.getElementById("expensesTotal");
+  if(tEl) tEl.textContent = formatMoney(totalUnpaid);
+}
+
+function showExpenseForm() { document.getElementById("addExpenseForm").style.display = "flex"; }
+function hideExpenseForm() { document.getElementById("addExpenseForm").style.display = "none"; }
+
+function saveExpense() {
+  const name = document.getElementById("newExpenseName").value;
+  const amount = parseFloat(document.getElementById("newExpenseAmount").value || 0);
+  if (!name || amount <= 0) return alert("Please enter a valid expense name and amount.");
+  
+  const exps = getStorage("global_expenses", []);
+  exps.push({ id: Date.now(), name, amount, paid: false });
+  setStorage("global_expenses", exps);
+  
+  document.getElementById("newExpenseName").value = "";
+  document.getElementById("newExpenseAmount").value = "";
+  hideExpenseForm();
+  renderExpenses();
+}
+
+function toggleExpensePaid(id) {
+  const exps = getStorage("global_expenses", []);
+  const e = exps.find(x => x.id === id);
+  if (e) { e.paid = !e.paid; setStorage("global_expenses", exps); renderExpenses(); }
+}
+
+function deleteExpense(id) {
+  if (!confirm("Remove this expense?")) return;
+  let exps = getStorage("global_expenses", []);
+  exps = exps.filter(x => x.id !== id);
+  setStorage("global_expenses", exps);
+  renderExpenses();
+}
+
+// ===== 8. SNAPSHOT TRACKER LOGIC =====
 function updateSnapshotTracker(trackerId) {
   const activeMonth = getActiveMonth();
   const account = document.getElementById(`${trackerId}AccountSelect`).value;
@@ -883,7 +1039,6 @@ function updateSnapshotTracker(trackerId) {
   if (trackerId === 'assumptions') renderNetWorth();
   renderDashboard(); 
   
-  // Refresh graph dynamically if open
   if (trackerId === 'investment') setTimeout(() => renderSnapshotGraph('investment', 'investmentGraphContainer', '#2aa6ff'), 10);
   if (trackerId === 'debt') setTimeout(() => renderSnapshotGraph('debt', 'debtGraphContainer', '#ff5c5c'), 10);
   if (trackerId === 'savings') setTimeout(() => renderSnapshotGraph('savings', 'savingsGraphContainer', '#f5b942'), 10);
@@ -913,7 +1068,7 @@ function renderSnapshotList(trackerId) {
   if(totalEl) totalEl.textContent = formatMoney(total);
 }
 
-// ===== 8. FLOW TRACKER LOGIC =====
+// ===== 9. FLOW TRACKER LOGIC (Income, Taxes, Retirement) =====
 function toggleIncomeMisc() {
   const sel = document.getElementById("incomeAccountSelect");
   const misc = document.getElementById("incomeMiscInput");
@@ -1001,7 +1156,23 @@ function renderFlowList(trackerId) {
   if(totalEl) totalEl.textContent = formatMoney(grandTotal);
   
   if(catTotalsEl) {
-    catTotalsEl.innerHTML = "<div style='margin-bottom:8px; color:#9aa7b6; font-size:11px;'>SUBTOTALS BY SOURCE</div>";
+    if(trackerId === 'retirement') {
+      let rothTotal = 0;
+      let tradTotal = 0;
+      data.forEach(txn => {
+        if(txn.account.toLowerCase().includes("roth")) rothTotal += txn.amount;
+        else tradTotal += txn.amount;
+      });
+      catTotalsEl.innerHTML = `
+        <div style='margin-bottom:8px; color:#9aa7b6; font-size:11px;'>SUBTOTALS BY TAX TYPE</div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-weight:600; color:#2aa6ff;"><span>Roth Contributions</span><span>${formatMoney(rothTotal)}</span></div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-weight:600; color:#f5b942;"><span>Traditional / Pre-Tax</span><span>${formatMoney(tradTotal)}</span></div>
+        <div style='margin-bottom:8px; color:#9aa7b6; font-size:11px;'>SUBTOTALS BY ACCOUNT</div>
+      `;
+    } else {
+      catTotalsEl.innerHTML = "<div style='margin-bottom:8px; color:#9aa7b6; font-size:11px;'>SUBTOTALS BY SOURCE</div>";
+    }
+
     let hasCategories = false;
     Object.keys(catTotals).forEach(c => {
       if(catTotals[c] > 0) {
@@ -1013,7 +1184,7 @@ function renderFlowList(trackerId) {
   }
 }
 
-// ===== 9. GRAPH GENERATORS =====
+// ===== 10. GRAPH GENERATORS =====
 function drawGraphSVG(container, history, color) {
   if (history.length < 1) {
     container.innerHTML = "<div style='color:#9aa7b6; font-size:12px; text-align:center; margin-top:40px;'>No data to graph yet.</div>";
@@ -1101,8 +1272,112 @@ function renderNetWorthGraph() {
   drawGraphSVG(container, history, '#2bd576');
 }
 
+// ===== 11. YEARLY REPORT ENGINE =====
+function generateYearlyReport() {
+  const year = document.getElementById("reportYearSelect").value;
+  const container = document.getElementById("reportContainer");
+  if (!container) return;
+  
+  // A. Calculate Flow Totals (Income, Taxes, Retirement)
+  const getYearlyFlow = (tracker) => {
+    let total = 0;
+    let rothTotal = 0;
+    let tradTotal = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith(`${STORAGE_PREFIX}${tracker}_${year}-`)) {
+        const data = JSON.parse(localStorage.getItem(key)) || [];
+        data.forEach(item => {
+          total += item.amount;
+          if(tracker === 'retirement') {
+             if(item.account.toLowerCase().includes("roth")) rothTotal += item.amount;
+             else tradTotal += item.amount;
+          }
+        });
+      }
+    }
+    return { total, rothTotal, tradTotal };
+  };
 
-// ===== 10. NAVIGATION & INIT =====
+  const incomeYTD = getYearlyFlow('income').total;
+  const taxYTD = getYearlyFlow('tax').total;
+  const retFlow = getYearlyFlow('retirement');
+
+  // B. Calculate Snapshot Deltas (Start vs End of Year)
+  let monthsSet = new Set();
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith(STORAGE_PREFIX)) {
+      const parts = key.split('_');
+      if(parts.length >= 3 && parts[2].startsWith(year + "-")) monthsSet.add(parts[2]);
+    }
+  }
+  
+  let startMonth = null, endMonth = null;
+  let startInv = 0, endInv = 0, startDebt = 0, endDebt = 0, startNW = 0, endNW = 0;
+
+  if (monthsSet.size > 0) {
+    let months = Array.from(monthsSet).sort();
+    startMonth = months[0];
+    endMonth = months[months.length - 1];
+
+    const getNW = (m) => sumSnapshot('investment', m) + sumSnapshot('savings', m) + sumSnapshot('assumptions', m) - sumSnapshot('debt', m);
+    
+    startInv = sumSnapshot('investment', startMonth);
+    endInv = sumSnapshot('investment', endMonth);
+    startDebt = sumSnapshot('debt', startMonth);
+    endDebt = sumSnapshot('debt', endMonth);
+    startNW = getNW(startMonth);
+    endNW = getNW(endMonth);
+  }
+
+  // C. Render the Report
+  let html = "";
+  if (monthsSet.size === 0) {
+    html = `<div style='color:#9aa7b6; text-align:center; padding: 20px;'>No data recorded for ${year}.</div>`;
+  } else {
+    html += `
+      <div class="card">
+        <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">CASH FLOW (${year})</div>
+        <div class="row"><div>Gross Income</div><div style="font-weight:900;">${formatMoney(incomeYTD)}</div></div>
+        <div class="row"><div>Taxes Withheld</div><div style="font-weight:900; color:#ff5c5c;">-${formatMoney(taxYTD)}</div></div>
+        <div class="row" style="border-top:1px solid #1b2533; padding-top:12px;">
+           <div style="font-weight:900;">NET TAKE-HOME</div>
+           <div style="font-weight:900; font-size:18px; color:#2bd576;">${formatMoney(incomeYTD - taxYTD)}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">WEALTH BUILDING (${year})</div>
+        <div class="row"><div>Retirement Contributions</div><div style="font-weight:900;">${formatMoney(retFlow.total)}</div></div>
+        <div class="row" style="padding-top:0;"><div style="font-size:11px; color:#9aa7b6;">↳ Roth</div><div style="font-size:12px;">${formatMoney(retFlow.rothTotal)}</div></div>
+        <div class="row" style="padding-top:0;"><div style="font-size:11px; color:#9aa7b6;">↳ Traditional</div><div style="font-size:12px;">${formatMoney(retFlow.tradTotal)}</div></div>
+        
+        <div style="height:1px; background:#1b2533; margin:10px 0;"></div>
+        
+        <div class="row"><div>Investment Growth</div><div style="font-weight:900; color:${endInv >= startInv ? '#2bd576' : '#ff5c5c'};">${endInv >= startInv ? '+' : ''}${formatMoney(endInv - startInv)}</div></div>
+        <div class="row" style="padding-top:0;"><div style="font-size:11px; color:#9aa7b6;">↳ Start to End</div><div style="font-size:12px;">${formatMoney(startInv)} → ${formatMoney(endInv)}</div></div>
+        
+        <div style="height:1px; background:#1b2533; margin:10px 0;"></div>
+
+        <div class="row">
+           <div style="font-weight:900;">NET WORTH DELTA</div>
+           <div style="font-weight:900; font-size:18px; color:${endNW >= startNW ? '#2bd576' : '#ff5c5c'};">${endNW >= startNW ? '+' : ''}${formatMoney(endNW - startNW)}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">DEBT REDUCTION (${year})</div>
+        <div class="row"><div>Debt Eliminated</div><div style="font-weight:900; color:#2aa6ff;">${formatMoney(startDebt - endDebt)}</div></div>
+        <div class="row" style="padding-top:0;"><div style="font-size:11px; color:#9aa7b6;">↳ Start to End</div><div style="font-size:12px;">${formatMoney(startDebt)} → ${formatMoney(endDebt)}</div></div>
+      </div>
+    `;
+  }
+  
+  container.innerHTML = html;
+}
+
+// ===== 12. NAVIGATION & INIT =====
 function toggleMenu() {
   const back = document.getElementById("menuBackdrop");
   const drawer = document.getElementById("menuDrawer");
@@ -1122,8 +1397,10 @@ function navigateTo(pageId) {
   document.getElementById("menuBackdrop").style.display = "none";
   
   if (['debt', 'investment', 'savings', 'assumptions'].includes(pageId)) renderSnapshotList(pageId);
-  if (['income', 'tax'].includes(pageId)) renderFlowList(pageId);
+  if (['income', 'tax', 'retirement'].includes(pageId)) renderFlowList(pageId);
   if (pageId === 'networth') renderNetWorth();
+  if (pageId === 'expenses') renderExpenses();
+  if (pageId === 'report') generateYearlyReport();
   
   if (pageId === 'investment') setTimeout(() => renderSnapshotGraph('investment', 'investmentGraphContainer', '#2aa6ff'), 10);
   if (pageId === 'debt') setTimeout(() => renderSnapshotGraph('debt', 'debtGraphContainer', '#ff5c5c'), 10);
@@ -1136,6 +1413,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialMonth = getActiveMonth();
   initTrackersForMonth(initialMonth);
   renderBills();
+  renderExpenses();
   renderNetWorth();
   
   const todayStr = new Date().toISOString().split('T')[0];
@@ -1143,6 +1421,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if(incDate) incDate.value = todayStr;
   const taxDate = document.getElementById("taxDateInput");
   if(taxDate) taxDate.value = todayStr;
+  const retDate = document.getElementById("retirementDateInput");
+  if(retDate) retDate.value = todayStr;
 });
 </script>
 </body>
