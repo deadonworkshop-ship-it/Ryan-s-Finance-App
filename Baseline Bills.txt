@@ -1,0 +1,21 @@
+const BASELINE_BILLS = [
+  { name: "Land Payment", amount: 907.50, phase: 1 },
+  { name: "T-Mobile", amount: 357.34, phase: 1 },
+  { name: "Mortgage", amount: 2406.28, phase: 1 },
+  { name: "AAFMAA", amount: 33.35, phase: 1 },
+  { name: "Travelers Insurance", amount: 392.75, phase: 1 },
+  { name: "TRICARE", amount: 286.66, phase: 1 }, 
+  { name: "Express Scripts", amount: 14.00, phase: 1 },
+  { name: "Car Payment - Highlander", amount: 229.03, phase: 1 },
+  { name: "Car Payment - Tesla", amount: 569.00, phase: 1 },
+  { name: "Amelia 529", amount: 100.00, phase: 2 },
+  { name: "Julia 529", amount: 100.00, phase: 2 },
+  { name: "Netflix", amount: 27.39, phase: 2 },
+  { name: "Denver Water", amount: 61.06, phase: 2 },
+  {name:"Travelers Insurance",amount:378.50,phase:2},
+ {name:"Xcel Energy",amount:300.00,phase:2},
+  { name: "BAM Internet", amount: 80.10, phase: 2 }
+];
+
+
+
