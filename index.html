@@ -420,7 +420,7 @@ const PRELOADED_BALANCES = {
   }
 };
 
-// ===== 1. CORE STATE & STORAGE (v7 - FRESH WIPE FOR CLEANUP) =====
+// ===== 1. CORE STATE & STORAGE (v7 - RETAINED) =====
 const STORAGE_PREFIX = "bills_ops_v7_";
 const getStorage = (key, defaultVal) => {
   try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + key)) || defaultVal; } 
@@ -838,13 +838,16 @@ function toggleMenu() {
 }
 
 function navigateTo(pageId) {
+  // Hide all pages
   document.querySelectorAll(".page").forEach(p => p.style.display = "none");
   const target = `page${pageId.charAt(0).toUpperCase() + pageId.slice(1)}`;
   const el = document.getElementById(target);
   if (el) el.style.display = "block";
   else document.getElementById("pageHome").style.display = "block";
   
-  toggleMenu();
+  // FORCE CLOSE the menu instead of toggling it blindly
+  document.getElementById("menuDrawer").style.display = "none";
+  document.getElementById("menuBackdrop").style.display = "none";
   
   if (['debt', 'investment', 'income', 'tax'].includes(pageId)) {
     renderTrackerList(pageId);
