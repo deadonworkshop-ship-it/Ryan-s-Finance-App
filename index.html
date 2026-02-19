@@ -202,7 +202,7 @@ input, select, textarea {
 
   <div class="card" style="border-color:#2bd576;">
     <div style="font-size:12px;color:#2bd576;margin-bottom:6px; font-weight:800;">SAFE TO SPEND (MONTHLY)</div>
-    <div style="font-size:11px;color:#9aa7b6;margin-bottom:10px; line-height:1.4;">MTD Net Income minus total Monthly Bills minus MTD Retirement.</div>
+    <div style="font-size:11px;color:#9aa7b6;margin-bottom:10px; line-height:1.4;">MTD Income minus Taxes, Monthly Bills, and post-deposit IRA Contributions.</div>
     <div id="guiltFreeTotal" class="big" style="color:#2bd576; margin-top:0;">$0.00</div>
   </div>
 
@@ -678,7 +678,7 @@ const PRELOADED_GOALS = {
   "USAA Savings": { label: "Emergency Fund", target: 10000 }
 };
 
-// ===== 1. CORE STATE & STORAGE (v12 - SAVINGS GOALS & ESTIMATORS) =====
+// ===== 1. CORE STATE & STORAGE (v12) =====
 const STORAGE_PREFIX = "bills_ops_v12_";
 const getStorage = (key, defaultVal) => {
   try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + key)) || defaultVal; } 
@@ -744,7 +744,7 @@ function initTrackersForMonth(yyyyMM) {
     }
   });
 
-  // Unique Dropdowns (Bills, Debt Payoff, Savings Goals)
+  // Unique Dropdowns 
   const populateSpecialDropdown = (elId, categories, suffix = "") => {
     const el = document.getElementById(elId);
     if (el) {
@@ -900,12 +900,19 @@ function renderDashboard() {
   availEl.textContent = formatMoney(available);
   availEl.style.color = available >= 0 ? "#2bd576" : "#ff5c5c"; 
 
-  // Guilt-Free Spending Math
+  // Guilt-Free Spending Math (IRA ISOLATION FIX)
   const mtdIncome = sumFlowMonth('income', activeMonth);
   const mtdTaxes = sumFlowMonth('tax', activeMonth);
-  const mtdRetirement = sumFlowMonth('retirement', activeMonth);
+  
+  // Only count accounts with "IRA" in the name toward Guilt-Free subtraction
+  const retirementData = getStorage(`retirement_${activeMonth}`, []);
+  const mtdIraRetirement = retirementData
+    .filter(txn => txn.account.includes("IRA"))
+    .reduce((s, txn) => s + txn.amount, 0);
+
   const totalMonthBillsFootprint = monthBills.reduce((s, b) => s + b.amount, 0);
-  const guiltFree = (mtdIncome - mtdTaxes) - totalMonthBillsFootprint - mtdRetirement;
+  
+  const guiltFree = (mtdIncome - mtdTaxes) - totalMonthBillsFootprint - mtdIraRetirement;
   document.getElementById("guiltFreeTotal").textContent = formatMoney(guiltFree);
 
   // Bill Progress
@@ -1259,7 +1266,6 @@ function calculatePayoff() {
   let months = 0;
   let totalInterest = 0;
   
-  // Safe loop up to 50 years to prevent infinity crashes
   while (bal > 0 && months < 600) {
     let interest = bal * moRate;
     totalInterest += interest;
@@ -1602,7 +1608,7 @@ function exportData() {
   downloadAnchorNode.setAttribute("href", dataStr);
   const dateStr = new Date().toISOString().split('T')[0];
   downloadAnchorNode.setAttribute("download", `BillsOps_Backup_${dateStr}.json`);
-  document.body.appendChild(downloadAnchorNode); // required for firefox
+  document.body.appendChild(downloadAnchorNode); 
   downloadAnchorNode.click();
   downloadAnchorNode.remove();
 }
@@ -1619,14 +1625,12 @@ function importData() {
       const importedData = JSON.parse(e.target.result);
       if(!confirm("Warning: This will overwrite your current app data. Proceed?")) return;
       
-      // Wipe current v12 data
       let keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         if(localStorage.key(i).startsWith(STORAGE_PREFIX)) keysToRemove.push(localStorage.key(i));
       }
       keysToRemove.forEach(k => localStorage.removeItem(k));
       
-      // Load imported data
       Object.keys(importedData).forEach(key => {
         if(key.startsWith(STORAGE_PREFIX)) {
            localStorage.setItem(key, importedData[key]);
