@@ -152,6 +152,8 @@ input, select, textarea {
     <div class="row" style="cursor:pointer;" onclick="navigateTo('bills')"><div>Monthly Bills</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('debt')"><div>Debt Snapshot</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('investment')"><div>Investments</div><div>›</div></div>
+    <div class="row" style="cursor:pointer;" onclick="navigateTo('savings')"><div>Savings Accounts</div><div>›</div></div>
+    <div class="row" style="cursor:pointer;" onclick="navigateTo('networth')"><div>Net Worth Tracker</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('income')"><div>Income Tracker</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('tax')"><div>Tax Withholdings</div><div>›</div></div>
   </div>
@@ -209,6 +211,7 @@ input, select, textarea {
 
   <div class="card">
     <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">QUICK GLANCE TOTALS</div>
+    <div class="row"><div>EST. NET WORTH</div><div id="glanceNetWorth" style="font-weight:900; color:#2bd576;">$0</div></div>
     <div class="row"><div>TOTAL PORTFOLIO</div><div id="glancePortfolio" style="font-weight:900;">$0</div></div>
     <div class="row"><div>TOTAL DEBT</div><div id="glanceDebt" style="font-weight:900;">$0</div></div>
     <div class="row"><div>YTD INCOME</div><div id="glanceIncome" style="font-weight:900;">$0</div></div>
@@ -282,6 +285,11 @@ input, select, textarea {
     <div class="row"><div>TOTAL OUTSTANDING DEBT</div><div id="debtTotal" class="big" style="margin-top:0;">$0.00</div></div>
     <div id="debtList" style="margin-top:16px;"></div>
   </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">DEBT REDUCTION</div>
+    <div id="debtGraphContainer" style="width: 100%; height: 160px; position: relative;"></div>
+  </div>
 </div>
 
 <div class="container page" id="pageInvestment" style="display:none;">
@@ -304,6 +312,62 @@ input, select, textarea {
   <div class="card" style="margin-top: 16px;">
     <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">PORTFOLIO GROWTH</div>
     <div id="investmentGraphContainer" style="width: 100%; height: 160px; position: relative;"></div>
+  </div>
+</div>
+
+<div class="container page" id="pageSavings" style="display:none;">
+  <div class="card">
+    <div class="row" style="border:none; padding:0;">
+      <div style="font-weight:800;">Savings Accounts</div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">UPDATE SAVINGS BALANCE</div>
+    <div class="update-form" style="display:flex; gap:10px; margin-bottom:12px;">
+      <select id="savingsAccountSelect" style="flex:2;"></select>
+      <input id="savingsAmountInput" inputmode="decimal" placeholder="Balance" style="flex:1;" />
+      <button class="confirmBtn" style="width:auto;" onclick="updateSnapshotTracker('savings')">UPDATE</button>
+    </div>
+    <div class="row"><div>TOTAL SAVINGS</div><div id="savingsTotal" class="big" style="margin-top:0;">$0.00</div></div>
+    <div id="savingsList" style="margin-top:16px;"></div>
+  </div>
+  
+  <div class="card" style="margin-top: 16px;">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">SAVINGS GROWTH</div>
+    <div id="savingsGraphContainer" style="width: 100%; height: 160px; position: relative;"></div>
+  </div>
+</div>
+
+<div class="container page" id="pageNetworth" style="display:none;">
+  <div class="card">
+    <div class="row" style="border:none; padding:0;">
+      <div style="font-weight:800;">Net Worth Tracker</div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">UPDATE ASSET ASSUMPTIONS</div>
+    <div class="update-form" style="display:flex; gap:10px; margin-bottom:12px;">
+      <select id="assumptionsAccountSelect" style="flex:2;"></select>
+      <input id="assumptionsAmountInput" inputmode="decimal" placeholder="Value" style="flex:1;" />
+      <button class="confirmBtn" style="width:auto;" onclick="updateSnapshotTracker('assumptions')">UPDATE</button>
+    </div>
+    <div id="assumptionsList" style="margin-top:16px;"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">NET WORTH BREAKDOWN</div>
+    <div class="row"><div>Total Assets</div><div id="nwAssets">$0.00</div></div>
+    <div class="row"><div>Total Liabilities</div><div id="nwLiabilities">$0.00</div></div>
+    <div class="row" style="border-top:1px solid #1b2533; padding-top:12px;">
+       <div style="font-weight:900;">ESTIMATED NET WORTH</div>
+       <div id="nwTotal" style="font-weight:900; font-size:20px; color:#2bd576;">$0.00</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">NET WORTH GROWTH</div>
+    <div id="networthGraphContainer" style="width: 100%; height: 160px; position: relative;"></div>
   </div>
 </div>
 
@@ -424,6 +488,12 @@ const DEFAULT_CATEGORIES = {
     "AMEX Blue Cash Credit Card", "AMEX Delta Credit Card", "AMEX Bonvoy Card", 
     "Amazon Prime Credit Card", "Amazon Prime Business Credit Card" 
   ],
+  savings: [
+    "USAA Savings", "Marcus Savings", "Discover Savings", "SOFI Savings", "BlueVine", "Cash"
+  ],
+  assumptions: [
+    "Home Value", "Land Value"
+  ],
   income: ["USAF", "VA", "United", "UC Health", "FastCap", "Miscellaneous"],
   tax: [
     "USAF State", "USAF Federal", "UC Health State", "UC Health Federal", 
@@ -431,8 +501,29 @@ const DEFAULT_CATEGORIES = {
   ]
 };
 
-// ===== 1. CORE STATE & STORAGE (v9 - TRANSACTION LEDGER UPDATE) =====
-const STORAGE_PREFIX = "bills_ops_v9_";
+// ==========================================
+// 🚨 YOUR PRE-LOADED FEBRUARY BALANCES 🚨
+// ==========================================
+const PRELOADED_BALANCES = {
+  investment: {
+    "TSP": 279092.82, "Ryan Roth IRA - Decade Perspective": 126288.16, "Ashley Schwab Roth IRA": 64048.44, 
+    "Ashley Schwab Rollover IRA": 37224.24, "Ryan Schwab Brokerage": 80062.70, "Ryan Schwab Brokerage 2": 49340.98, 
+    "Ryan PCRA Trust - Bonfire": 102100.97, "UC Health Fidelity": 69699.20, "Ashley Old IRA": 18368.37, "Robinhood": 45451.93
+  },
+  debt: {
+    "House Mortgage": 550000.00, "Land Mortgage": 91750.34, "Tesla Loan": 30918.79, "Highlander Loan": 5581.51, 
+    "AMEX Bonvoy Card": 3249.74, "Amazon Prime Business Credit Card": 1471.18, "Amazon Prime Credit Card": 251.67
+  },
+  savings: {
+    "USAA Savings": 3000, "Marcus Savings": 174.45, "Discover Savings": 204.79, "SOFI Savings": 810.32, "BlueVine": 0, "Cash": 0
+  },
+  assumptions: {
+    "Home Value": 750000, "Land Value": 175000
+  }
+};
+
+// ===== 1. CORE STATE & STORAGE (v10 - SAVINGS & NET WORTH UPDATE) =====
+const STORAGE_PREFIX = "bills_ops_v10_";
 const getStorage = (key, defaultVal) => {
   try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + key)) || defaultVal; } 
   catch { return defaultVal; }
@@ -440,8 +531,8 @@ const getStorage = (key, defaultVal) => {
 const setStorage = (key, val) => localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(val));
 
 function initTrackersForMonth(yyyyMM) {
-  // Snapshot Trackers (Investments, Debt) -> Uses {}
-  ['investment', 'debt'].forEach(tracker => {
+  // Snapshot Trackers (Investments, Debt, Savings, Assumptions)
+  ['investment', 'debt', 'savings', 'assumptions'].forEach(tracker => {
     const key = `${tracker}_${yyyyMM}`;
     let data = getStorage(key, null);
     
@@ -459,6 +550,9 @@ function initTrackersForMonth(yyyyMM) {
       } else {
         data = {};
         DEFAULT_CATEGORIES[tracker].forEach(cat => data[cat] = 0);
+        if (yyyyMM === "2026-02" && PRELOADED_BALANCES[tracker]) {
+          Object.keys(PRELOADED_BALANCES[tracker]).forEach(k => data[k] = PRELOADED_BALANCES[tracker][k]);
+        }
       }
       setStorage(key, data);
     }
@@ -474,12 +568,12 @@ function initTrackersForMonth(yyyyMM) {
     }
   });
 
-  // Flow Trackers (Income, Tax) -> Uses [] arrays for individual transactions
+  // Flow Trackers (Income, Tax) 
   ['income', 'tax'].forEach(tracker => {
     const key = `${tracker}_${yyyyMM}`;
     let data = getStorage(key, null);
     if (!data || !Array.isArray(data)) {
-      data = []; // Fresh array for transactions
+      data = []; 
       setStorage(key, data);
     }
     const select = document.getElementById(`${tracker}AccountSelect`);
@@ -540,11 +634,14 @@ function initActiveMonthUI() {
     initTrackersForMonth(getActiveMonth()); 
     renderBills();
     renderDashboard();
-    ['investment', 'debt'].forEach(id => renderSnapshotList(id));
+    ['investment', 'debt', 'savings', 'assumptions'].forEach(id => renderSnapshotList(id));
     ['income', 'tax'].forEach(id => renderFlowList(id));
-    if (document.getElementById("pageInvestment").style.display === "block") {
-      setTimeout(renderInvestmentGraph, 10);
-    }
+    renderNetWorth();
+    
+    if (document.getElementById("pageInvestment").style.display === "block") setTimeout(() => renderSnapshotGraph('investment', 'investmentGraphContainer', '#2aa6ff'), 10);
+    if (document.getElementById("pageDebt").style.display === "block") setTimeout(() => renderSnapshotGraph('debt', 'debtGraphContainer', '#ff5c5c'), 10);
+    if (document.getElementById("pageSavings").style.display === "block") setTimeout(() => renderSnapshotGraph('savings', 'savingsGraphContainer', '#f5b942'), 10);
+    if (document.getElementById("pageNetworth").style.display === "block") setTimeout(renderNetWorthGraph, 10);
   };
 
   yearSelect.addEventListener("change", handleChange);
@@ -584,7 +681,12 @@ function saveBalanceFromModal() {
 // ===== 4. FORMATTING =====
 function formatMoney(amount) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0); }
 
-// ===== 5. UI RENDERERS (HOME PAGE DASHBOARD MATH) =====
+// ===== 5. UI RENDERERS (HOME DASHBOARD & NET WORTH) =====
+function sumSnapshot(tracker, month) {
+  const data = getStorage(`${tracker}_${month}`, {});
+  return Object.values(data).reduce((s, v) => s + v, 0);
+}
+
 function renderDashboard() {
   const bal = parseFloat(getStorage("current_balance", 0));
   const updatedTs = getStorage("balance_updated_at", null);
@@ -642,12 +744,7 @@ function renderDashboard() {
     });
   }
 
-  // Quick Glance: Snapshot logic vs YTD Flow logic
-  const sumSnapshot = (tracker) => {
-    const data = getStorage(`${tracker}_${activeMonth}`, {});
-    return Object.values(data).reduce((s, v) => s + v, 0);
-  };
-  
+  // Quick Glance Updates
   const sumFlowYTD = (tracker) => {
     const year = activeMonth.split('-')[0];
     let total = 0;
@@ -661,10 +758,28 @@ function renderDashboard() {
     return total;
   };
   
-  document.getElementById("glancePortfolio").textContent = formatMoney(sumSnapshot('investment'));
-  document.getElementById("glanceDebt").textContent = formatMoney(sumSnapshot('debt'));
+  const totalAssets = sumSnapshot('investment', activeMonth) + sumSnapshot('savings', activeMonth) + sumSnapshot('assumptions', activeMonth);
+  const totalLiabilities = sumSnapshot('debt', activeMonth);
+  
+  document.getElementById("glanceNetWorth").textContent = formatMoney(totalAssets - totalLiabilities);
+  document.getElementById("glancePortfolio").textContent = formatMoney(sumSnapshot('investment', activeMonth));
+  document.getElementById("glanceDebt").textContent = formatMoney(totalLiabilities);
   document.getElementById("glanceIncome").textContent = formatMoney(sumFlowYTD('income'));
   document.getElementById("glanceTaxes").textContent = formatMoney(sumFlowYTD('tax'));
+}
+
+function renderNetWorth() {
+  const activeMonth = getActiveMonth();
+  const totalAssets = sumSnapshot('investment', activeMonth) + sumSnapshot('savings', activeMonth) + sumSnapshot('assumptions', activeMonth);
+  const totalLiabilities = sumSnapshot('debt', activeMonth);
+  
+  const elAssets = document.getElementById('nwAssets');
+  const elLiabilities = document.getElementById('nwLiabilities');
+  const elTotal = document.getElementById('nwTotal');
+  
+  if(elAssets) elAssets.textContent = formatMoney(totalAssets);
+  if(elLiabilities) elLiabilities.textContent = formatMoney(totalLiabilities);
+  if(elTotal) elTotal.textContent = formatMoney(totalAssets - totalLiabilities);
 }
 
 // ===== 6. MONTHLY BILLS LOGIC =====
@@ -751,8 +866,7 @@ function deleteBill(id) {
   renderBills();
 }
 
-
-// ===== 7. SNAPSHOT TRACKER LOGIC (Debt, Investments) =====
+// ===== 7. SNAPSHOT TRACKER LOGIC =====
 function updateSnapshotTracker(trackerId) {
   const activeMonth = getActiveMonth();
   const account = document.getElementById(`${trackerId}AccountSelect`).value;
@@ -765,8 +879,17 @@ function updateSnapshotTracker(trackerId) {
   
   document.getElementById(`${trackerId}AmountInput`).value = "";
   renderSnapshotList(trackerId);
-  if (trackerId === 'investment') setTimeout(renderInvestmentGraph, 10);
+  
+  if (trackerId === 'assumptions') renderNetWorth();
   renderDashboard(); 
+  
+  // Refresh graph dynamically if open
+  if (trackerId === 'investment') setTimeout(() => renderSnapshotGraph('investment', 'investmentGraphContainer', '#2aa6ff'), 10);
+  if (trackerId === 'debt') setTimeout(() => renderSnapshotGraph('debt', 'debtGraphContainer', '#ff5c5c'), 10);
+  if (trackerId === 'savings') setTimeout(() => renderSnapshotGraph('savings', 'savingsGraphContainer', '#f5b942'), 10);
+  if (['investment','debt','savings','assumptions'].includes(trackerId) && document.getElementById("pageNetworth").style.display === "block") {
+    setTimeout(renderNetWorthGraph, 10);
+  }
 }
 
 function renderSnapshotList(trackerId) {
@@ -775,7 +898,7 @@ function renderSnapshotList(trackerId) {
   const list = document.getElementById(`${trackerId}List`);
   const totalEl = document.getElementById(`${trackerId}Total`);
   
-  if (!list || !totalEl) return;
+  if (!list) return;
   list.innerHTML = "";
   let total = 0;
   
@@ -787,10 +910,10 @@ function renderSnapshotList(trackerId) {
     row.innerHTML = `<div style="font-weight:800;">${acc}</div><div>${formatMoney(amt)}</div>`;
     list.appendChild(row);
   });
-  totalEl.textContent = formatMoney(total);
+  if(totalEl) totalEl.textContent = formatMoney(total);
 }
 
-// ===== 8. FLOW TRACKER LOGIC (Income, Taxes as Ledgers) =====
+// ===== 8. FLOW TRACKER LOGIC =====
 function toggleIncomeMisc() {
   const sel = document.getElementById("incomeAccountSelect");
   const misc = document.getElementById("incomeMiscInput");
@@ -814,7 +937,7 @@ function addFlowTransaction(trackerId) {
   const data = getStorage(key, []);
   
   data.push({ id: Date.now(), account, desc, amount, date });
-  data.sort((a, b) => a.date.localeCompare(b.date)); // Sort chronologically
+  data.sort((a, b) => a.date.localeCompare(b.date)); 
   
   setStorage(key, data);
   
@@ -849,7 +972,6 @@ function renderFlowList(trackerId) {
   let grandTotal = 0;
   let catTotals = {};
   
-  // Set up categories so they appear in order even if 0
   DEFAULT_CATEGORIES[trackerId].forEach(c => catTotals[c] = 0);
   
   if(data.length === 0) {
@@ -861,7 +983,6 @@ function renderFlowList(trackerId) {
       else catTotals[txn.account] = txn.amount;
       
       const title = txn.desc ? `${txn.account} (${txn.desc})` : txn.account;
-      // Format date nicely (e.g. Feb 14)
       const dStr = new Date(txn.date + "T00:00:00").toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
       
       list.innerHTML += `
@@ -892,28 +1013,12 @@ function renderFlowList(trackerId) {
   }
 }
 
-// ===== 9. INVESTMENT GRAPH GENERATOR =====
-function renderInvestmentGraph() {
-  const container = document.getElementById("investmentGraphContainer");
-  if (!container) return;
-
-  let history = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith(STORAGE_PREFIX + "investment_")) {
-      const month = key.split("investment_")[1];
-      const data = JSON.parse(localStorage.getItem(key));
-      const total = Object.values(data).reduce((a,b)=>a+b, 0);
-      history.push({ month, total });
-    }
-  }
-  history.sort((a,b) => a.month.localeCompare(b.month));
-
+// ===== 9. GRAPH GENERATORS =====
+function drawGraphSVG(container, history, color) {
   if (history.length < 1) {
     container.innerHTML = "<div style='color:#9aa7b6; font-size:12px; text-align:center; margin-top:40px;'>No data to graph yet.</div>";
     return;
   }
-
   const w = container.clientWidth || 300;
   const h = 160; 
   const padX = 40;
@@ -938,7 +1043,7 @@ function renderInvestmentGraph() {
     const yearStr = pt.month.substring(2, 4); 
     const labelText = `${monthStr} '${yearStr}`;
     
-    labels += `<circle cx="${x}" cy="${y}" r="4" fill="#2aa6ff"/>`;
+    labels += `<circle cx="${x}" cy="${y}" r="4" fill="${color}"/>`;
     labels += `<text x="${x}" y="${h - 5}" fill="#9aa7b6" font-size="12" font-weight="bold" text-anchor="middle">${labelText}</text>`;
     
     if(history.length <= 8) {
@@ -948,11 +1053,54 @@ function renderInvestmentGraph() {
 
   container.innerHTML = `
     <svg width="100%" height="100%" viewBox="0 0 ${w} ${h}">
-      <polyline points="${points.trim()}" fill="none" stroke="#2aa6ff" stroke-width="2"/>
+      <polyline points="${points.trim()}" fill="none" stroke="${color}" stroke-width="2"/>
       ${labels}
     </svg>
   `;
 }
+
+function renderSnapshotGraph(trackerId, containerId, color) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  let history = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith(STORAGE_PREFIX + trackerId + "_")) {
+      const month = key.split(trackerId + "_")[1];
+      const data = JSON.parse(localStorage.getItem(key));
+      const total = Object.values(data).reduce((a,b)=>a+b, 0);
+      history.push({ month, total });
+    }
+  }
+  history.sort((a,b) => a.month.localeCompare(b.month));
+  drawGraphSVG(container, history, color);
+}
+
+function renderNetWorthGraph() {
+  const container = document.getElementById("networthGraphContainer");
+  if (!container) return;
+
+  let monthsSet = new Set();
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith(STORAGE_PREFIX)) {
+      const parts = key.split('_');
+      if(parts.length >= 3) monthsSet.add(parts[2]);
+    }
+  }
+  
+  let history = [];
+  Array.from(monthsSet).forEach(month => {
+    const assets = sumSnapshot('investment', month) + sumSnapshot('savings', month) + sumSnapshot('assumptions', month);
+    const liab = sumSnapshot('debt', month);
+    history.push({ month, total: assets - liab });
+  });
+
+  history.sort((a,b) => a.month.localeCompare(b.month));
+  drawGraphSVG(container, history, '#2bd576');
+}
+
 
 // ===== 10. NAVIGATION & INIT =====
 function toggleMenu() {
@@ -973,9 +1121,14 @@ function navigateTo(pageId) {
   document.getElementById("menuDrawer").style.display = "none";
   document.getElementById("menuBackdrop").style.display = "none";
   
-  if (['debt', 'investment'].includes(pageId)) renderSnapshotList(pageId);
+  if (['debt', 'investment', 'savings', 'assumptions'].includes(pageId)) renderSnapshotList(pageId);
   if (['income', 'tax'].includes(pageId)) renderFlowList(pageId);
-  if (pageId === 'investment') setTimeout(renderInvestmentGraph, 10);
+  if (pageId === 'networth') renderNetWorth();
+  
+  if (pageId === 'investment') setTimeout(() => renderSnapshotGraph('investment', 'investmentGraphContainer', '#2aa6ff'), 10);
+  if (pageId === 'debt') setTimeout(() => renderSnapshotGraph('debt', 'debtGraphContainer', '#ff5c5c'), 10);
+  if (pageId === 'savings') setTimeout(() => renderSnapshotGraph('savings', 'savingsGraphContainer', '#f5b942'), 10);
+  if (pageId === 'networth') setTimeout(renderNetWorthGraph, 10);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -983,8 +1136,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialMonth = getActiveMonth();
   initTrackersForMonth(initialMonth);
   renderBills();
+  renderNetWorth();
   
-  // Set default dates for the new transaction inputs
   const todayStr = new Date().toISOString().split('T')[0];
   const incDate = document.getElementById("incomeDateInput");
   if(incDate) incDate.value = todayStr;

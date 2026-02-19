@@ -1,0 +1,7 @@
+Fix log / Change log
+
+- After playing with the income tracker, I would like to adjust that as well. I like the dropdown and total boxes but I also want a few added features here. I would like a date input. I want to look below totals from each source and see in chronological order the dates that every payment came in. Additionally, for the miscellaneous dropdown, I would like a new box to appear that tells me what it was from ie random refund check, grandma money, etc With that running list for the month, I would also like a month to date running number for my income. 
+
+- I would like the same functionality that was put in place for the income page but added to the tax withholding page. Additionally, I would like to clean up the naming convention on those. It should be USAF State, USAF Federal, UC Health State, UC Health Federal, United State, United Federal, Extra State, Extra Federal.
+
+-
