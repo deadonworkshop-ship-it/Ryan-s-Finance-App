@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BillsOps">
+<title>Bills Checking Ops</title>
+<link rel="manifest" href="manifest.json">
+<style>
+/* ===== GLOBAL STYLES ===== */
+body {
+  margin: 0;
+  font-family: -apple-system, system-ui, sans-serif;
+  background: #0b0f14;
+  color: #fff;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ===== TYPOGRAPHY & HEADER ===== */
+.header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: #0c131d;
+  border-bottom: 1px solid #1b2533;
+}
+.header > .menu {
+  font-size: 24px;
+  margin-right: 16px;
+  cursor: pointer;
+}
+.header > div:not(.menu) {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+/* ===== CONTAINERS & CARDS ===== */
+.container {
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.card {
+  background: #0c131d;
+  border: 1px solid #1b2533;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #1b2533;
+}
+.row:last-child {
+  border-bottom: none;
+}
+.big {
+  font-size: 32px;
+  font-weight: 900;
+  margin-top: 8px;
+}
+
+/* ===== BUTTONS & INPUTS ===== */
+.btn {
+  border: 1px solid #2aa6ff;
+  background: #0c131d;
+  color: white;
+  padding: 18px 16px;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: 800;
+  width: 100%;
+  min-height: 64px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+.btnSmall, .confirmBtn, .cancelBtn, .primaryBtn {
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid #1b2533;
+  background: #0c131d;
+  color: #fff;
+}
+.confirmBtn { background: #142033; border-color: #2aa6ff; color: #2aa6ff; }
+.primaryBtn { background: #2aa6ff; color: #000; border: none; font-weight: 900; }
+.cancelBtn { color: #ff5c5c; }
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: 16px;
+  background: #0c131d;
+  color: #fff;
+  border: 1px solid #1b2533;
+  border-radius: 12px;
+  padding: 14px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Toggle Switch for Bills */
+.toggleSwitch {
+  appearance: none; -webkit-appearance: none;
+  width: 48px; height: 26px;
+  background: #1b2533; border-radius: 13px;
+  position: relative; cursor: pointer; outline: none;
+}
+.toggleSwitch::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #9aa7b6; transition: 0.2s;
+}
+.toggleSwitch:checked { background: #2aa6ff; }
+.toggleSwitch:checked::after { transform: translateX(22px); background: #fff; }
+
+.paid-text { text-decoration: line-through; color: #9aa7b6; }
+
+@media (max-width: 520px) {
+  .header > div:not(.menu) { font-size: 20px; }
+  .update-form { flex-direction: column; align-items: stretch; }
+  .update-form > * { width: 100% !important; margin-bottom: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div id="fatalErrorBanner" style="display:none; margin:12px; padding:12px; border:1px solid #5a1f1f; background:rgba(180,40,40,0.2); color:#ffd7d7; border-radius:10px; font-size:13px; line-height:1.3;"></div>
+
+<div class="header">
+  <div class="menu" id="menuBtn" onclick="toggleMenu()">☰</div>
+  <div>Ryan's Finance Dashboard</div>
+</div>
+
+<div id="menuBackdrop" onclick="toggleMenu()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50;"></div>
+<div id="menuDrawer" style="display:none; position:fixed; top:0; left:0; height:100vh; width:min(360px, 86vw); background:#0c131d; border-right:1px solid #1b2533; z-index:60; padding:14px; overflow:auto;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+    <div style="font-weight:800;">MENU</div>
+    <button class="cancelBtn" style="border:none;" onclick="toggleMenu()">CLOSE</button>
+  </div>
+  <div class="card" style="margin-bottom:14px;">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">Navigate</div>
+    <div class="row" style="cursor:pointer;" onclick="navigateTo('home')"><div>Home</div><div>›</div></div>
+    <div class="row" style="cursor:pointer;" onclick="navigateTo('bills')"><div>Monthly Bills</div><div>›</div></div>
+    <div class="row" style="cursor:pointer;" onclick="navigateTo('debt')"><div>Debt Snapshot</div><div>›</div></div>
+    <div class="row" style="cursor:pointer;" onclick="navigateTo('investment')"><div>Investments</div><div>›</div></div>
+    <div class="row" style="cursor:pointer;" onclick="navigateTo('income')"><div>Income Tracker</div><div>›</div></div>
+    <div class="row" style="cursor:pointer;" onclick="navigateTo('tax')"><div>Tax Withholdings</div><div>›</div></div>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom: 0;">
+  <div class="card" id="activeMonthCard">
+    <div class="row" style="border:none; padding:0;">
+      <div style="font-weight: 800; color:#9aa7b6;">ACTIVE PERIOD</div>
+      <div style="display:flex; gap:8px;">
+        <select id="activeYearSelect" style="width:auto; padding:10px;"></select>
+        <select id="activeMonthSelect" style="width:auto; padding:10px;"></select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container page" id="pageHome">
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;">YOU SHOULD HAVE</div>
+    <div class="big" id="shouldHave">$0.00</div>
+    <div style="margin-top:14px;">
+      <div style="font-size:12px;color:#9aa7b6;">CURRENT BALANCE</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px;">
+        <div style="text-align:left;">
+          <div id="currentBalance" style="font-size:26px;font-weight:800;">$0.00</div>
+          <div id="updatedAgo" style="font-size:13px;color:#f5b942;margin-top:4px;">UPDATED —</div>
+        </div>
+        <button class="btnSmall" onclick="openBalanceModal()">UPDATE</button>
+      </div>
+    </div>
+    <div class="row"><div>AVAILABLE FOR DEBT</div><div id="avail">$0.00</div></div>
+  </div>
+</div>
+
+<div class="container page" id="pageBills" style="display:none;">
+  <div class="card">
+    <div class="row" style="border:none; padding:0;">
+      <div style="font-weight:800;">Monthly Bills</div>
+      <div style="display:flex; gap:8px;">
+        <button class="btnSmall" onclick="showAddBillForm()">+ BILL</button>
+        <button class="btnSmall" style="border-color:#f5b942; color:#f5b942;" onclick="showAddDebtBillForm()">+ DEBT PMT</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="addBillForm" style="display:none; flex-direction:column; gap:10px;">
+    <div style="font-size:12px;color:#2aa6ff;font-weight:800;">ADD REGULAR BILL</div>
+    <input id="newBillName" placeholder="Bill Name (e.g., Trash Collection)" />
+    <input id="newBillAmount" inputmode="decimal" placeholder="Amount" />
+    <select id="newBillPhase">
+      <option value="1">Phase 1 (Autodrafts 1st-15th)</option>
+      <option value="2">Phase 2 (Autodrafts 16th+)</option>
+    </select>
+    <div style="display:flex; gap:10px;">
+      <button class="confirmBtn" style="flex:1;" onclick="saveNewBill()">SAVE</button>
+      <button class="cancelBtn" style="flex:1;" onclick="hideAddBillForm()">CANCEL</button>
+    </div>
+  </div>
+
+  <div class="card" id="addDebtBillForm" style="display:none; flex-direction:column; gap:10px;">
+    <div style="font-size:12px;color:#f5b942;font-weight:800;">ADD DEBT PAYMENT</div>
+    <select id="newDebtBillName"></select>
+    <input id="newDebtBillAmount" inputmode="decimal" placeholder="Payment Amount" />
+    <select id="newDebtBillPhase">
+      <option value="1">Phase 1 (Autodrafts 1st-15th)</option>
+      <option value="2">Phase 2 (Autodrafts 16th+)</option>
+    </select>
+    <div style="display:flex; gap:10px;">
+      <button class="confirmBtn" style="flex:1; border-color:#f5b942; color:#f5b942;" onclick="saveNewDebtBill()">SAVE</button>
+      <button class="cancelBtn" style="flex:1;" onclick="hideAddDebtBillForm()">CANCEL</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">PHASE 1 (1st - 15th)</div>
+    <div id="phase1BillsList"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">PHASE 2 (16th - End)</div>
+    <div id="phase2BillsList"></div>
+  </div>
+</div>
+
+<div class="container page" id="pageDebt" style="display:none;">
+  <div class="card">
+    <div class="row" style="border:none; padding:0;">
+      <div style="font-weight:800;">Debt Snapshot</div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">UPDATE DEBT BALANCE</div>
+    <div class="update-form" style="display:flex; gap:10px; margin-bottom:12px;">
+      <select id="debtAccountSelect" style="flex:2;"></select>
+      <input id="debtAmountInput" inputmode="decimal" placeholder="Balance" style="flex:1;" />
+      <button class="confirmBtn" style="width:auto;" onclick="updateTracker('debt')">UPDATE</button>
+    </div>
+    <div class="row"><div>TOTAL OUTSTANDING DEBT</div><div id="debtTotal" class="big" style="margin-top:0;">$0.00</div></div>
+    <div id="debtList" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<div class="container page" id="pageInvestment" style="display:none;">
+  <div class="card">
+    <div class="row" style="border:none; padding:0;">
+      <div style="font-weight:800;">Investments Snapshot</div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">UPDATE INVESTMENT BALANCE</div>
+    <div class="update-form" style="display:flex; gap:10px; margin-bottom:12px;">
+      <select id="investmentAccountSelect" style="flex:2;"></select>
+      <input id="investmentAmountInput" inputmode="decimal" placeholder="Balance" style="flex:1;" />
+      <button class="confirmBtn" style="width:auto;" onclick="updateTracker('investment')">UPDATE</button>
+    </div>
+    <div class="row"><div>TOTAL INVESTMENTS</div><div id="investmentTotal" class="big" style="margin-top:0;">$0.00</div></div>
+    <div id="investmentList" style="margin-top:16px;"></div>
+  </div>
+  
+  <div class="card" style="margin-top: 16px;">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">PORTFOLIO GROWTH</div>
+    <div id="investmentGraphContainer" style="width: 100%; height: 160px; position: relative;"></div>
+  </div>
+</div>
+
+<div class="container page" id="pageIncome" style="display:none;">
+  <div class="card">
+    <div class="row" style="border:none; padding:0;">
+      <div style="font-weight:800;">Income Tracker (YTD)</div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">UPDATE INCOME SOURCE</div>
+    <div class="update-form" style="display:flex; gap:10px; margin-bottom:12px;">
+      <select id="incomeAccountSelect" style="flex:2;"></select>
+      <input id="incomeAmountInput" inputmode="decimal" placeholder="Total" style="flex:1;" />
+      <button class="confirmBtn" style="width:auto;" onclick="updateTracker('income')">UPDATE</button>
+    </div>
+    <div class="row"><div>TOTAL YTD INCOME</div><div id="incomeTotal" class="big" style="margin-top:0;">$0.00</div></div>
+    <div id="incomeList" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<div class="container page" id="pageTax" style="display:none;">
+  <div class="card">
+    <div class="row" style="border:none; padding:0;">
+      <div style="font-weight:800;">Tax Withholdings (YTD)</div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">UPDATE TAX BUCKET</div>
+    <div class="update-form" style="display:flex; gap:10px; margin-bottom:12px;">
+      <select id="taxAccountSelect" style="flex:2;"></select>
+      <input id="taxAmountInput" inputmode="decimal" placeholder="Total" style="flex:1;" />
+      <button class="confirmBtn" style="width:auto;" onclick="updateTracker('tax')">UPDATE</button>
+    </div>
+    <div class="row"><div>TOTAL YTD TAXES</div><div id="taxTotal" class="big" style="margin-top:0;">$0.00</div></div>
+    <div id="taxList" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<div id="balBackdrop" onclick="closeBalanceModal()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:90;"></div>
+<div id="balModal" style="display:none; position:fixed; inset:0; z-index:100; padding:16px; align-items:center; justify-content:center;">
+  <div style="width:100%; max-width:420px; background:#101722; border:1px solid #1b2533; border-radius:14px; overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid #1b2533;">
+      <div style="font-weight:900;">Update Current Balance</div>
+      <button class="cancelBtn" onclick="closeBalanceModal()" style="border:none; padding:0;">CLOSE</button>
+    </div>
+    <div style="padding:14px 16px;">
+      <input id="balInput" type="text" inputmode="decimal" placeholder="e.g. 5195.91" />
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button class="primaryBtn" style="flex:1;" onclick="saveBalanceFromModal()">SAVE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// 🚨 PASTE YOUR UPDATED BASELINE_BILLS HERE 🚨
+// ==========================================
+const BASELINE_BILLS = [
+  { name: "Land Payment", amount: 907.50, phase: 1 },
+  { name: "T-Mobile", amount: 357.34, phase: 1 },
+  { name: "Mortgage", amount: 2406.28, phase: 1 },
+  { name: "AAFMAA", amount: 33.35, phase: 1 },
+  { name: "Travelers Insurance", amount: 392.75, phase: 1 },
+  { name: "TRICARE", amount: 286.66, phase: 1 }, 
+  { name: "Express Scripts", amount: 14.00, phase: 1 },
+  { name: "Car Payment - Highlander", amount: 229.03, phase: 1 },
+  { name: "Car Payment - Tesla", amount: 569.00, phase: 1 },
+  { name: "Amelia 529", amount: 100.00, phase: 2 },
+  { name: "Julia 529", amount: 100.00, phase: 2 },
+  { name: "Netflix", amount: 27.39, phase: 2 },
+  { name: "Denver Water", amount: 61.06, phase: 2 },
+  {name:"Travelers Insurance",amount:378.50,phase:2},
+ {name:"Xcel Energy",amount:300.00,phase:2},
+  { name: "BAM Internet", amount: 80.10, phase: 2 }
+];
+
+// ==========================================
+// 🚨 YOUR DEFAULT TRACKER CATEGORIES 🚨
+// ==========================================
+const DEFAULT_CATEGORIES = {
+  investment: [
+    "TSP", "Ryan Roth IRA - Decade Perspective", "Ashley Schwab Roth IRA", 
+    "Ashley Schwab Rollover IRA", "Ryan Schwab Brokerage", "Ryan Schwab Brokerage 2", 
+    "Ryan PCRA Trust - Bonfire", "UC Health Fidelity", "Ashley Old IRA", "Robinhood"
+  ],
+  debt: [
+    "House Mortgage", "Land Mortgage", "Tesla Loan", "Highlander Loan", 
+    "USAA Signature Credit Card", "USAA Platinum Credit Card", "AMEX Platinum Card", 
+    "AMEX Blue Cash Credit Card", "AMEX Delta Credit Card", "AMEX Bonvoy Card", 
+    "Amazon Prime Credit Card", "Amazon Prime Business Credit Card", "Chase CC"
+  ],
+  income: ["USAF", "VA", "United", "UC Health", "FastCap", "Miscellaneous"],
+  tax: [
+    "Ryan USAF State", "Ryan USAF Federal", "Ryan United State", 
+    "Ryan United Federal", "Ashley State", "Ashley Federal", "Extra Federal"
+  ]
+};
+
+// ==========================================
+// 🚨 YOUR PRE-LOADED FEBRUARY BALANCES 🚨
+// ==========================================
+const PRELOADED_BALANCES = {
+  investment: {
+    "TSP": 279092.82, "Ryan Roth IRA - Decade Perspective": 126288.16, "Ashley Schwab Roth IRA": 64048.44, 
+    "Ashley Schwab Rollover IRA": 37224.24, "Ryan Schwab Brokerage": 80062.70, "Ryan Schwab Brokerage 2": 49340.98, 
+    "Ryan PCRA Trust - Bonfire": 102100.97, "UC Health Fidelity": 69699.20, "Ashley Old IRA": 18368.37, "Robinhood": 45451.93
+  },
+  debt: {
+    "House Mortgage": 550000.00, "Land Mortgage": 91750.34, "Tesla Loan": 30918.79, "Highlander Loan": 5581.51, 
+    "AMEX Bonvoy Card": 3249.74, "Amazon Prime Business Credit Card": 1471.18, "Amazon Prime Credit Card": 251.67
+  }
+};
+
+// ===== 1. CORE STATE & STORAGE (v6 - RETAINED) =====
+const STORAGE_PREFIX = "bills_ops_v6_";
+const getStorage = (key, defaultVal) => {
+  try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + key)) || defaultVal; } 
+  catch { return defaultVal; }
+};
+const setStorage = (key, val) => localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(val));
+
+function initTrackersForMonth(yyyyMM) {
+  ['investment', 'debt', 'income', 'tax'].forEach(tracker => {
+    const key = `${tracker}_${yyyyMM}`;
+    let data = getStorage(key, null);
+    
+    if (!data) {
+      // Find previous month data to inherit
+      let availableMonths = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k.startsWith(STORAGE_PREFIX + tracker + "_")) {
+          availableMonths.push(k.split(tracker + "_")[1]);
+        }
+      }
+      availableMonths.sort();
+      let prevMonth = availableMonths.reverse().find(m => m < yyyyMM);
+
+      if (prevMonth) {
+        data = getStorage(`${tracker}_${prevMonth}`, {});
+      } else {
+        data = {};
+        DEFAULT_CATEGORIES[tracker].forEach(cat => data[cat] = 0);
+        if (yyyyMM === "2026-02" && PRELOADED_BALANCES[tracker]) {
+          Object.keys(PRELOADED_BALANCES[tracker]).forEach(k => data[k] = PRELOADED_BALANCES[tracker][k]);
+        }
+      }
+      setStorage(key, data);
+    }
+    
+    const select = document.getElementById(`${tracker}AccountSelect`);
+    if (select) {
+      select.innerHTML = "";
+      Object.keys(data).forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
+      });
+    }
+  });
+
+  const debtBillSelect = document.getElementById('newDebtBillName');
+  if (debtBillSelect) {
+    debtBillSelect.innerHTML = "";
+    DEFAULT_CATEGORIES.debt.forEach(cat => {
+      const opt = document.createElement("option");
+      opt.value = cat + " Payment";
+      opt.textContent = cat;
+      debtBillSelect.appendChild(opt);
+    });
+  }
+}
+
+// ===== 2. DATE & SPLIT MONTH/YEAR LOGIC =====
+function initActiveMonthUI() {
+  const yearSelect = document.getElementById("activeYearSelect");
+  const monthSelect = document.getElementById("activeMonthSelect");
+  if (!yearSelect || !monthSelect) return;
+
+  const d = new Date();
+  const currentYear = d.getFullYear();
+  const currentMonth = String(d.getMonth() + 1).padStart(2, '0');
+
+  // Populate Years
+  yearSelect.innerHTML = "";
+  for (let y = 2024; y <= currentYear + 2; y++) {
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    yearSelect.appendChild(opt);
+  }
+  yearSelect.value = currentYear;
+
+  // Populate Months
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  monthSelect.innerHTML = "";
+  monthNames.forEach((name, i) => {
+    const val = String(i + 1).padStart(2, '0');
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = name;
+    monthSelect.appendChild(opt);
+  });
+  monthSelect.value = currentMonth;
+
+  const handleChange = () => {
+    initTrackersForMonth(getActiveMonth()); 
+    renderBills();
+    renderDashboard();
+    ['investment', 'debt', 'income', 'tax'].forEach(id => renderTrackerList(id));
+    if (document.getElementById("pageInvestment").style.display === "block") {
+      setTimeout(renderInvestmentGraph, 10);
+    }
+  };
+
+  yearSelect.addEventListener("change", handleChange);
+  monthSelect.addEventListener("change", handleChange);
+}
+
+function getActiveMonth() { 
+  const y = document.getElementById("activeYearSelect")?.value || new Date().getFullYear();
+  const m = document.getElementById("activeMonthSelect")?.value || String(new Date().getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
+// ===== 3. BALANCE MODAL LOGIC =====
+function openBalanceModal() {
+  document.getElementById("balBackdrop").style.display = "block";
+  document.getElementById("balModal").style.display = "flex";
+  document.getElementById("balInput").value = getStorage("current_balance", "0.00");
+  document.getElementById("balInput").focus();
+}
+
+function closeBalanceModal() {
+  document.getElementById("balBackdrop").style.display = "none";
+  document.getElementById("balModal").style.display = "none";
+}
+
+function saveBalanceFromModal() {
+  const raw = document.getElementById("balInput").value;
+  const val = parseFloat(raw.replace(/[^0-9.\-]/g, ""));
+  if (!Number.isNaN(val)) {
+    setStorage("current_balance", val.toFixed(2));
+    setStorage("balance_updated_at", Date.now());
+    renderDashboard();
+  }
+  closeBalanceModal();
+}
+
+// ===== 4. FORMATTING =====
+function formatMoney(amount) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0); }
+
+// ===== 5. UI RENDERERS (HOME PAGE MATH) =====
+function renderDashboard() {
+  const bal = parseFloat(getStorage("current_balance", 0));
+  const updatedTs = getStorage("balance_updated_at", null);
+  document.getElementById("currentBalance").textContent = formatMoney(bal);
+  if (updatedTs) {
+    const diffMins = Math.floor((Date.now() - updatedTs) / 60000);
+    let timeString = diffMins < 60 ? `${diffMins}m ago` : `${Math.floor(diffMins/60)}h ago`;
+    if(diffMins === 0) timeString = "Just now";
+    document.getElementById("updatedAgo").textContent = `UPDATED — ${timeString}`;
+  }
+  const activeMonth = getActiveMonth();
+  const monthBills = getStorage("bills", []).filter(b => b.month === activeMonth);
+  const unpaidTotal = monthBills.filter(b => !b.paid).reduce((sum, b) => sum + b.amount, 0);
+  document.getElementById("shouldHave").textContent = formatMoney(unpaidTotal); 
+  const available = bal - unpaidTotal;
+  const availEl = document.getElementById("avail");
+  availEl.textContent = formatMoney(available);
+  availEl.style.color = available >= 0 ? "#2bd576" : "#ff5c5c"; 
+}
+
+// ===== 6. MONTHLY BILLS LOGIC =====
+function renderBills() {
+  const activeMonth = getActiveMonth();
+  let allBills = getStorage("bills", []);
+  let monthBills = allBills.filter(b => b.month === activeMonth);
+  if (monthBills.length === 0) {
+    const newBills = BASELINE_BILLS.map((b, i) => ({ ...b, month: activeMonth, paid: false, id: Date.now() + i }));
+    allBills = allBills.concat(newBills);
+    setStorage("bills", allBills);
+    monthBills = newBills;
+  }
+  const phase1List = document.getElementById("phase1BillsList");
+  const phase2List = document.getElementById("phase2BillsList");
+  phase1List.innerHTML = ""; phase2List.innerHTML = "";
+  monthBills.forEach(bill => {
+    const row = document.createElement("div");
+    row.className = "row";
+    const textClass = bill.paid ? "paid-text" : "";
+    row.innerHTML = `
+      <div style="display:flex; align-items:center; width:100%; gap:12px;">
+        <input type="checkbox" class="toggleSwitch" ${bill.paid ? 'checked' : ''} onchange="toggleBillPaid(${bill.id})" style="flex-shrink:0;">
+        <div style="flex:1; display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-weight:800; font-size:16px;" class="${textClass}">${bill.name}</div>
+          <div style="font-weight:900; font-size:18px;" class="${textClass}">${formatMoney(bill.amount)}</div>
+        </div>
+        <button class="cancelBtn" style="border:none; padding:8px; font-size:16px; font-weight:bold; flex-shrink:0;" onclick="deleteBill(${bill.id})">✕</button>
+      </div>
+    `;
+    if (bill.phase === 1) phase1List.appendChild(row);
+    else phase2List.appendChild(row);
+  });
+  renderDashboard(); 
+}
+
+function showAddBillForm() { 
+  document.getElementById("addBillForm").style.display = "flex"; 
+  document.getElementById("addDebtBillForm").style.display = "none"; 
+}
+function hideAddBillForm() { document.getElementById("addBillForm").style.display = "none"; }
+
+function saveNewBill() {
+  const name = document.getElementById("newBillName").value;
+  const amount = parseFloat(document.getElementById("newBillAmount").value || 0);
+  const phase = parseInt(document.getElementById("newBillPhase").value);
+  if (!name || amount <= 0) return alert("Please enter a valid bill name and amount.");
+  const allBills = getStorage("bills", []);
+  allBills.push({ id: Date.now(), name, amount, phase, paid: false, month: getActiveMonth() });
+  setStorage("bills", allBills);
+  document.getElementById("newBillName").value = "";
+  document.getElementById("newBillAmount").value = "";
+  hideAddBillForm();
+  renderBills();
+}
+
+function showAddDebtBillForm() { 
+  document.getElementById("addDebtBillForm").style.display = "flex"; 
+  document.getElementById("addBillForm").style.display = "none"; 
+}
+function hideAddDebtBillForm() { document.getElementById("addDebtBillForm").style.display = "none"; }
+
+function saveNewDebtBill() {
+  const name = document.getElementById("newDebtBillName").value;
+  const amount = parseFloat(document.getElementById("newDebtBillAmount").value || 0);
+  const phase = parseInt(document.getElementById("newDebtBillPhase").value);
+  if (amount <= 0) return alert("Please enter a valid payment amount.");
+  const allBills = getStorage("bills", []);
+  allBills.push({ id: Date.now(), name, amount, phase, paid: false, month: getActiveMonth() });
+  setStorage("bills", allBills);
+  document.getElementById("newDebtBillAmount").value = "";
+  hideAddDebtBillForm();
+  renderBills();
+}
+
+function toggleBillPaid(id) {
+  const allBills = getStorage("bills", []);
+  const bill = allBills.find(b => b.id === id);
+  if (bill) { bill.paid = !bill.paid; setStorage("bills", allBills); renderBills(); }
+}
+function deleteBill(id) {
+  if (!confirm("Remove this bill?")) return;
+  let allBills = getStorage("bills", []);
+  allBills = allBills.filter(b => b.id !== id);
+  setStorage("bills", allBills);
+  renderBills();
+}
+
+// ===== 7. SNAPSHOT TRACKER LOGIC (MONTHLY SCOPED) =====
+function updateTracker(trackerId) {
+  const activeMonth = getActiveMonth();
+  const account = document.getElementById(`${trackerId}AccountSelect`).value;
+  const amount = parseFloat(document.getElementById(`${trackerId}AmountInput`).value || 0);
+  
+  const key = `${trackerId}_${activeMonth}`;
+  const data = getStorage(key, {});
+  data[account] = amount;
+  setStorage(key, data);
+  
+  document.getElementById(`${trackerId}AmountInput`).value = "";
+  renderTrackerList(trackerId);
+  
+  if (trackerId === 'investment') setTimeout(renderInvestmentGraph, 10);
+}
+
+function renderTrackerList(trackerId) {
+  const activeMonth = getActiveMonth();
+  const data = getStorage(`${trackerId}_${activeMonth}`, {});
+  const list = document.getElementById(`${trackerId}List`);
+  const totalEl = document.getElementById(`${trackerId}Total`);
+  
+  if (!list || !totalEl) return;
+  list.innerHTML = "";
+  let total = 0;
+  
+  Object.keys(data).forEach(acc => {
+    const amt = data[acc];
+    total += amt;
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `
+      <div style="font-weight:800;">${acc}</div>
+      <div>${formatMoney(amt)}</div>
+    `;
+    list.appendChild(row);
+  });
+  
+  totalEl.textContent = formatMoney(total);
+}
+
+// ===== 8. INVESTMENT GRAPH GENERATOR (WITH YEAR LABELS) =====
+function renderInvestmentGraph() {
+  const container = document.getElementById("investmentGraphContainer");
+  if (!container) return;
+
+  let history = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith(STORAGE_PREFIX + "investment_")) {
+      const month = key.split("investment_")[1];
+      const data = JSON.parse(localStorage.getItem(key));
+      const total = Object.values(data).reduce((a,b)=>a+b, 0);
+      history.push({ month, total });
+    }
+  }
+  history.sort((a,b) => a.month.localeCompare(b.month));
+
+  if (history.length < 1) {
+    container.innerHTML = "<div style='color:#9aa7b6; font-size:12px; text-align:center; margin-top:40px;'>No data to graph yet.</div>";
+    return;
+  }
+
+  const w = container.clientWidth || 300;
+  const h = 160; 
+  const padX = 40;
+  const padY = 30;
+
+  const minT = Math.min(...history.map(h => h.total));
+  const maxT = Math.max(...history.map(h => h.total));
+  const range = maxT - minT === 0 ? 1 : maxT - minT;
+
+  let points = "";
+  let labels = "";
+  
+  history.forEach((pt, i) => {
+    const step = history.length <= 1 ? 1 : history.length - 1;
+    const x = padX + (i * ((w - padX * 2) / step));
+    const y = h - padY - ((pt.total - minT) / range) * (h - padY * 2);
+    
+    points += `${x},${y} `;
+    
+    // Parse the date to get "Feb '26" format
+    const dateObj = new Date(pt.month + "-02"); 
+    const monthStr = dateObj.toLocaleString('en-US', { month: 'short' });
+    const yearStr = pt.month.substring(2, 4); // Grabs the "26" from "2026"
+    const labelText = `${monthStr} '${yearStr}`;
+    
+    labels += `<circle cx="${x}" cy="${y}" r="4" fill="#2aa6ff"/>`;
+    labels += `<text x="${x}" y="${h - 5}" fill="#9aa7b6" font-size="12" font-weight="bold" text-anchor="middle">${labelText}</text>`;
+    
+    if(history.length <= 8) {
+        labels += `<text x="${x}" y="${y - 12}" fill="#fff" font-size="11" font-weight="800" text-anchor="middle">$${Math.round(pt.total/1000)}k</text>`;
+    }
+  });
+
+  container.innerHTML = `
+    <svg width="100%" height="100%" viewBox="0 0 ${w} ${h}">
+      <polyline points="${points.trim()}" fill="none" stroke="#2aa6ff" stroke-width="2"/>
+      ${labels}
+    </svg>
+  `;
+}
+
+// ===== 9. NAVIGATION & INIT =====
+function toggleMenu() {
+  const back = document.getElementById("menuBackdrop");
+  const drawer = document.getElementById("menuDrawer");
+  const isHidden = drawer.style.display === "none";
+  drawer.style.display = isHidden ? "block" : "none";
+  back.style.display = isHidden ? "block" : "none";
+}
+
+function navigateTo(pageId) {
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  const target = `page${pageId.charAt(0).toUpperCase() + pageId.slice(1)}`;
+  const el = document.getElementById(target);
+  if (el) el.style.display = "block";
+  else document.getElementById("pageHome").style.display = "block";
+  
+  toggleMenu();
+  
+  if (['debt', 'investment', 'income', 'tax'].includes(pageId)) {
+    renderTrackerList(pageId);
+    if (pageId === 'investment') {
+      setTimeout(renderInvestmentGraph, 10);
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initActiveMonthUI();
+  const initialMonth = getActiveMonth();
+  initTrackersForMonth(initialMonth);
+  renderBills();
+});
+</script>
+</body>
+</html>
