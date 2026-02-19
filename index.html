@@ -159,6 +159,7 @@ input, select, textarea {
     <div class="row" style="cursor:pointer;" onclick="navigateTo('tax')"><div>Tax Withholdings</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('retirement')"><div>Retirement Contributions</div><div>›</div></div>
     <div class="row" style="cursor:pointer;" onclick="navigateTo('report')"><div>Yearly Rollup Report</div><div>›</div></div>
+    <div class="row" style="cursor:pointer; border-top:1px solid #1b2533; padding-top:12px;" onclick="navigateTo('settings')"><div style="color:#9aa7b6;">Settings (Backup)</div><div>›</div></div>
   </div>
 </div>
 
@@ -197,6 +198,12 @@ input, select, textarea {
       <div>AVAILABLE FOR DEBT</div>
       <div id="avail" style="font-weight:900; font-size:18px;">$0.00</div>
     </div>
+  </div>
+
+  <div class="card" style="border-color:#2bd576;">
+    <div style="font-size:12px;color:#2bd576;margin-bottom:6px; font-weight:800;">SAFE TO SPEND (MONTHLY)</div>
+    <div style="font-size:11px;color:#9aa7b6;margin-bottom:10px; line-height:1.4;">MTD Net Income minus total Monthly Bills minus MTD Retirement.</div>
+    <div id="guiltFreeTotal" class="big" style="color:#2bd576; margin-top:0;">$0.00</div>
   </div>
 
   <div class="card">
@@ -307,6 +314,7 @@ input, select, textarea {
       <div style="font-weight:800;">Debt Snapshot</div>
     </div>
   </div>
+  
   <div class="card">
     <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">UPDATE DEBT BALANCE</div>
     <div class="update-form" style="display:flex; gap:10px; margin-bottom:12px;">
@@ -316,6 +324,21 @@ input, select, textarea {
     </div>
     <div class="row"><div>TOTAL OUTSTANDING DEBT</div><div id="debtTotal" class="big" style="margin-top:0;">$0.00</div></div>
     <div id="debtList" style="margin-top:16px;"></div>
+  </div>
+
+  <div class="card" style="border-color:#f5b942;">
+    <div style="font-size:12px;color:#f5b942;margin-bottom:10px; font-weight:800;">DEBT PAYOFF ESTIMATOR</div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <select id="payoffAccountSelect" onchange="loadPayoffBalance()"></select>
+      <input id="payoffBalance" inputmode="decimal" placeholder="Current Balance (Auto-fills)" />
+      <div style="display:flex; gap:10px;">
+        <input id="payoffRate" inputmode="decimal" placeholder="Interest Rate (%)" style="flex:1;" />
+        <input id="payoffMin" inputmode="decimal" placeholder="Min Payment ($)" style="flex:1;" />
+      </div>
+      <input id="payoffExtra" inputmode="decimal" placeholder="Extra Payment per Month ($)" />
+      <button class="confirmBtn" style="border-color:#f5b942; color:#f5b942;" onclick="calculatePayoff()">CALCULATE PAYOFF</button>
+      <div id="payoffResult" style="margin-top:10px; font-weight:800; font-size:16px; color:#2bd576; text-align:center;"></div>
+    </div>
   </div>
 
   <div class="card" style="margin-top: 16px;">
@@ -353,6 +376,7 @@ input, select, textarea {
       <div style="font-weight:800;">Savings Accounts</div>
     </div>
   </div>
+  
   <div class="card">
     <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">UPDATE SAVINGS BALANCE</div>
     <div class="update-form" style="display:flex; gap:10px; margin-bottom:12px;">
@@ -362,6 +386,25 @@ input, select, textarea {
     </div>
     <div class="row"><div>TOTAL SAVINGS</div><div id="savingsTotal" class="big" style="margin-top:0;">$0.00</div></div>
     <div id="savingsList" style="margin-top:16px;"></div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="border:none; padding:0; margin-bottom:10px;">
+      <div style="font-size:12px;color:#9aa7b6; font-weight:800;">SINKING FUNDS / GOALS</div>
+      <button class="btnSmall" onclick="showGoalForm()">+ GOAL</button>
+    </div>
+    
+    <div id="addGoalForm" style="display:none; flex-direction:column; gap:10px; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #1b2533;">
+      <select id="goalAccountSelect"></select>
+      <input id="goalLabelInput" placeholder="Goal Name (e.g., Vacation, AC-130 Sleeve)" />
+      <input id="goalTargetInput" inputmode="decimal" placeholder="Target Amount ($)" />
+      <div style="display:flex; gap:10px;">
+        <button class="confirmBtn" style="flex:1;" onclick="saveSavingsGoal()">SAVE</button>
+        <button class="cancelBtn" style="flex:1;" onclick="hideGoalForm()">CANCEL</button>
+      </div>
+    </div>
+
+    <div id="savingsGoalsList"></div>
   </div>
   
   <div class="card" style="margin-top: 16px;">
@@ -512,6 +555,25 @@ input, select, textarea {
   <div id="reportContainer"></div>
 </div>
 
+<div class="container page" id="pageSettings" style="display:none;">
+  <div class="card">
+    <div style="font-weight:800; font-size:18px;">Settings & Backup</div>
+  </div>
+  
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">DATA EXPORT</div>
+    <div style="font-size:13px; margin-bottom:12px; line-height:1.4;">Download a complete backup of all your financial history to your phone or computer.</div>
+    <button class="primaryBtn" style="width:100%; padding:14px;" onclick="exportData()">⬇ EXPORT BACKUP FILE</button>
+  </div>
+
+  <div class="card" style="border-color:#ff5c5c;">
+    <div style="font-size:12px;color:#ff5c5c;margin-bottom:10px; font-weight:800;">DATA IMPORT</div>
+    <div style="font-size:13px; margin-bottom:12px; line-height:1.4;">Restore your app from a previous backup file. <b>Warning: This will overwrite your current data.</b></div>
+    <input type="file" id="importFileInput" accept=".json" style="margin-bottom:10px; padding:10px; font-size:14px;" />
+    <button class="confirmBtn" style="width:100%; border-color:#ff5c5c; color:#ff5c5c;" onclick="importData()">⬆ IMPORT DATA</button>
+  </div>
+</div>
+
 <div id="balBackdrop" onclick="closeBalanceModal()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:90;"></div>
 <div id="balModal" style="display:none; position:fixed; inset:0; z-index:100; padding:16px; align-items:center; justify-content:center;">
   <div style="width:100%; max-width:420px; background:#101722; border:1px solid #1b2533; border-radius:14px; overflow:hidden;">
@@ -527,6 +589,9 @@ input, select, textarea {
     </div>
   </div>
 </div>
+
+</body>
+</html>
 
 <script>
 // ==========================================
@@ -588,7 +653,7 @@ const DEFAULT_CATEGORIES = {
 };
 
 // ==========================================
-// 🚨 YOUR PRE-LOADED FEBRUARY BALANCES 🚨
+// 🚨 YOUR PRE-LOADED FEBRUARY BALANCES & GOALS 🚨
 // ==========================================
 const PRELOADED_BALANCES = {
   investment: {
@@ -608,8 +673,13 @@ const PRELOADED_BALANCES = {
   }
 };
 
-// ===== 1. CORE STATE & STORAGE (v11 - RETAINED) =====
-const STORAGE_PREFIX = "bills_ops_v11_";
+const PRELOADED_GOALS = {
+  "Discover Savings": { label: "AC-130 Arm Sleeve", target: 3500 },
+  "USAA Savings": { label: "Emergency Fund", target: 10000 }
+};
+
+// ===== 1. CORE STATE & STORAGE (v12 - SAVINGS GOALS & ESTIMATORS) =====
+const STORAGE_PREFIX = "bills_ops_v12_";
 const getStorage = (key, defaultVal) => {
   try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + key)) || defaultVal; } 
   catch { return defaultVal; }
@@ -617,6 +687,7 @@ const getStorage = (key, defaultVal) => {
 const setStorage = (key, val) => localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(val));
 
 function initTrackersForMonth(yyyyMM) {
+  // Snapshot Trackers
   ['investment', 'debt', 'savings', 'assumptions'].forEach(tracker => {
     const key = `${tracker}_${yyyyMM}`;
     let data = getStorage(key, null);
@@ -653,6 +724,7 @@ function initTrackersForMonth(yyyyMM) {
     }
   });
 
+  // Flow Trackers 
   ['income', 'tax', 'retirement'].forEach(tracker => {
     const key = `${tracker}_${yyyyMM}`;
     let data = getStorage(key, null);
@@ -672,16 +744,27 @@ function initTrackersForMonth(yyyyMM) {
     }
   });
 
-  const debtBillSelect = document.getElementById('newDebtBillName');
-  if (debtBillSelect) {
-    debtBillSelect.innerHTML = "";
-    DEFAULT_CATEGORIES.debt.forEach(cat => {
-      const opt = document.createElement("option");
-      opt.value = cat + " Payment";
-      opt.textContent = cat;
-      debtBillSelect.appendChild(opt);
-    });
-  }
+  // Unique Dropdowns (Bills, Debt Payoff, Savings Goals)
+  const populateSpecialDropdown = (elId, categories, suffix = "") => {
+    const el = document.getElementById(elId);
+    if (el) {
+      el.innerHTML = "";
+      categories.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat + suffix;
+        el.appendChild(opt);
+      });
+    }
+  };
+  
+  populateSpecialDropdown('newDebtBillName', DEFAULT_CATEGORIES.debt, " Payment");
+  populateSpecialDropdown('payoffAccountSelect', DEFAULT_CATEGORIES.debt);
+  populateSpecialDropdown('goalAccountSelect', DEFAULT_CATEGORIES.savings);
+
+  // Initialize Savings Goals Object globally
+  let goals = getStorage("savings_goals", null);
+  if (!goals) setStorage("savings_goals", PRELOADED_GOALS);
 }
 
 // ===== 2. DATE & SPLIT MONTH/YEAR LOGIC =====
@@ -732,7 +815,10 @@ function initActiveMonthUI() {
     renderNetWorth();
     
     if (document.getElementById("pageInvestment").style.display === "block") setTimeout(() => renderSnapshotGraph('investment', 'investmentGraphContainer', '#2aa6ff'), 10);
-    if (document.getElementById("pageDebt").style.display === "block") setTimeout(() => renderSnapshotGraph('debt', 'debtGraphContainer', '#ff5c5c'), 10);
+    if (document.getElementById("pageDebt").style.display === "block") {
+      setTimeout(() => renderSnapshotGraph('debt', 'debtGraphContainer', '#ff5c5c'), 10);
+      loadPayoffBalance();
+    }
     if (document.getElementById("pageSavings").style.display === "block") setTimeout(() => renderSnapshotGraph('savings', 'savingsGraphContainer', '#f5b942'), 10);
     if (document.getElementById("pageNetworth").style.display === "block") setTimeout(renderNetWorthGraph, 10);
   };
@@ -774,15 +860,21 @@ function saveBalanceFromModal() {
 // ===== 4. FORMATTING =====
 function formatMoney(amount) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0); }
 
-// ===== 5. UI RENDERERS (HOME DASHBOARD & NET WORTH) =====
+// ===== 5. UI RENDERERS (HOME DASHBOARD & GUILT-FREE MATH) =====
 function sumSnapshot(tracker, month) {
   const data = getStorage(`${tracker}_${month}`, {});
   return Object.values(data).reduce((s, v) => s + v, 0);
 }
 
+function sumFlowMonth(tracker, month) {
+  const data = getStorage(`${tracker}_${month}`, []);
+  return data.reduce((s, item) => s + item.amount, 0);
+}
+
 function renderDashboard() {
   const bal = parseFloat(getStorage("current_balance", 0));
   const updatedTs = getStorage("balance_updated_at", null);
+  const activeMonth = getActiveMonth();
   
   document.getElementById("currentBalance").textContent = formatMoney(bal);
   if (updatedTs) {
@@ -792,16 +884,14 @@ function renderDashboard() {
     document.getElementById("updatedAgo").textContent = `UPDATED — ${timeString}`;
   }
 
-  const activeMonth = getActiveMonth();
   const monthBills = getStorage("bills", []).filter(b => b.month === activeMonth);
-  
   const today = new Date();
   const sysPhase = today.getDate() <= 15 ? 1 : 2;
   document.getElementById("currentPhaseBadge").textContent = `TODAY: PHASE ${sysPhase} ${sysPhase===1 ? "(1st - 15th)" : "(16th - End)"}`;
 
+  // Checking Math
   const targetPhaseBills = monthBills.filter(b => b.phase === sysPhase && !b.paid);
   const unpaidTargetTotal = targetPhaseBills.reduce((sum, b) => sum + b.amount, 0);
-
   document.getElementById("shouldHaveLabel").textContent = `YOU SHOULD HAVE (PHASE ${sysPhase} UNPAID)`;
   document.getElementById("shouldHave").textContent = formatMoney(unpaidTargetTotal); 
   
@@ -810,12 +900,21 @@ function renderDashboard() {
   availEl.textContent = formatMoney(available);
   availEl.style.color = available >= 0 ? "#2bd576" : "#ff5c5c"; 
 
-  const totalMonthBills = monthBills.reduce((s, b) => s + b.amount, 0);
-  const paidMonthBills = monthBills.filter(b => b.paid).reduce((s, b) => s + b.amount, 0);
-  const pct = totalMonthBills === 0 ? 0 : Math.round((paidMonthBills / totalMonthBills) * 100);
-  document.getElementById("billProgressBar").style.width = `${pct}%`;
-  document.getElementById("billProgressText").textContent = `${pct}% Paid (${formatMoney(paidMonthBills)} / ${formatMoney(totalMonthBills)})`;
+  // Guilt-Free Spending Math
+  const mtdIncome = sumFlowMonth('income', activeMonth);
+  const mtdTaxes = sumFlowMonth('tax', activeMonth);
+  const mtdRetirement = sumFlowMonth('retirement', activeMonth);
+  const totalMonthBillsFootprint = monthBills.reduce((s, b) => s + b.amount, 0);
+  const guiltFree = (mtdIncome - mtdTaxes) - totalMonthBillsFootprint - mtdRetirement;
+  document.getElementById("guiltFreeTotal").textContent = formatMoney(guiltFree);
 
+  // Bill Progress
+  const paidMonthBills = monthBills.filter(b => b.paid).reduce((s, b) => s + b.amount, 0);
+  const pct = totalMonthBillsFootprint === 0 ? 0 : Math.round((paidMonthBills / totalMonthBillsFootprint) * 100);
+  document.getElementById("billProgressBar").style.width = `${pct}%`;
+  document.getElementById("billProgressText").textContent = `${pct}% Paid (${formatMoney(paidMonthBills)} / ${formatMoney(totalMonthBillsFootprint)})`;
+
+  // Next 3 Bills
   const unpaidAll = monthBills.filter(b => !b.paid).sort((a,b) => a.phase - b.phase); 
   const next3 = unpaidAll.slice(0, 3);
   const nextList = document.getElementById("nextBillsList");
@@ -1022,7 +1121,7 @@ function deleteExpense(id) {
   renderExpenses();
 }
 
-// ===== 8. SNAPSHOT TRACKER LOGIC =====
+// ===== 8. SNAPSHOT TRACKER LOGIC (Inc. Savings Goals & Debt Payoff) =====
 function updateSnapshotTracker(trackerId) {
   const activeMonth = getActiveMonth();
   const account = document.getElementById(`${trackerId}AccountSelect`).value;
@@ -1040,7 +1139,10 @@ function updateSnapshotTracker(trackerId) {
   renderDashboard(); 
   
   if (trackerId === 'investment') setTimeout(() => renderSnapshotGraph('investment', 'investmentGraphContainer', '#2aa6ff'), 10);
-  if (trackerId === 'debt') setTimeout(() => renderSnapshotGraph('debt', 'debtGraphContainer', '#ff5c5c'), 10);
+  if (trackerId === 'debt') {
+    setTimeout(() => renderSnapshotGraph('debt', 'debtGraphContainer', '#ff5c5c'), 10);
+    loadPayoffBalance();
+  }
   if (trackerId === 'savings') setTimeout(() => renderSnapshotGraph('savings', 'savingsGraphContainer', '#f5b942'), 10);
   if (['investment','debt','savings','assumptions'].includes(trackerId) && document.getElementById("pageNetworth").style.display === "block") {
     setTimeout(renderNetWorthGraph, 10);
@@ -1066,9 +1168,121 @@ function renderSnapshotList(trackerId) {
     list.appendChild(row);
   });
   if(totalEl) totalEl.textContent = formatMoney(total);
+  
+  if(trackerId === 'savings') renderSavingsGoals();
 }
 
-// ===== 9. FLOW TRACKER LOGIC (Income, Taxes, Retirement) =====
+// Savings Goals Math
+function showGoalForm() { document.getElementById("addGoalForm").style.display = "flex"; }
+function hideGoalForm() { document.getElementById("addGoalForm").style.display = "none"; }
+function saveSavingsGoal() {
+  const account = document.getElementById("goalAccountSelect").value;
+  const label = document.getElementById("goalLabelInput").value;
+  const target = parseFloat(document.getElementById("goalTargetInput").value || 0);
+  
+  if(!label || target <= 0) return alert("Enter valid goal name and target amount.");
+  
+  let goals = getStorage("savings_goals", {});
+  goals[account] = { label, target };
+  setStorage("savings_goals", goals);
+  
+  document.getElementById("goalLabelInput").value = "";
+  document.getElementById("goalTargetInput").value = "";
+  hideGoalForm();
+  renderSavingsGoals();
+}
+
+function renderSavingsGoals() {
+  const list = document.getElementById("savingsGoalsList");
+  if(!list) return;
+  
+  const goals = getStorage("savings_goals", {});
+  const currentSavings = getStorage(`savings_${getActiveMonth()}`, {});
+  
+  list.innerHTML = "";
+  let hasGoals = false;
+  
+  Object.keys(goals).forEach(acc => {
+    hasGoals = true;
+    const g = goals[acc];
+    const current = currentSavings[acc] || 0;
+    const pct = g.target === 0 ? 0 : Math.min(100, Math.round((current / g.target) * 100));
+    
+    list.innerHTML += `
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <div style="font-weight:800; font-size:14px;">${g.label} <span style="font-size:10px; font-weight:normal; color:#9aa7b6;">(${acc})</span></div>
+          <div style="font-weight:bold; font-size:13px;">${pct}%</div>
+        </div>
+        <div style="width:100%; background:#1b2533; border-radius:6px; height:8px; overflow:hidden;">
+          <div style="width:${pct}%; background:#2bd576; height:100%;"></div>
+        </div>
+        <div style="text-align:right; font-size:11px; color:#9aa7b6; margin-top:4px;">${formatMoney(current)} / ${formatMoney(g.target)}</div>
+      </div>
+    `;
+  });
+  
+  if(!hasGoals) list.innerHTML = "<div style='color:#9aa7b6; font-size:12px;'>No active goals.</div>";
+}
+
+// Debt Payoff Estimator Math
+function loadPayoffBalance() {
+  const account = document.getElementById("payoffAccountSelect").value;
+  const currentDebt = getStorage(`debt_${getActiveMonth()}`, {});
+  document.getElementById("payoffBalance").value = currentDebt[account] || "";
+  document.getElementById("payoffResult").textContent = "";
+}
+
+function calculatePayoff() {
+  let bal = parseFloat(document.getElementById("payoffBalance").value || 0);
+  const rate = parseFloat(document.getElementById("payoffRate").value || 0);
+  const minPmt = parseFloat(document.getElementById("payoffMin").value || 0);
+  const extraPmt = parseFloat(document.getElementById("payoffExtra").value || 0);
+  
+  const resEl = document.getElementById("payoffResult");
+  
+  if(bal <= 0 || minPmt <= 0) {
+    resEl.textContent = "Please enter valid balance and min payment.";
+    resEl.style.color = "#ff5c5c";
+    return;
+  }
+  
+  let totalPmt = minPmt + extraPmt;
+  let moRate = (rate / 100) / 12;
+  
+  if (rate > 0 && totalPmt <= bal * moRate) {
+    resEl.textContent = "Payment is less than interest. You will never pay this off!";
+    resEl.style.color = "#ff5c5c";
+    return;
+  }
+
+  let months = 0;
+  let totalInterest = 0;
+  
+  // Safe loop up to 50 years to prevent infinity crashes
+  while (bal > 0 && months < 600) {
+    let interest = bal * moRate;
+    totalInterest += interest;
+    let principal = totalPmt - interest;
+    bal -= principal;
+    months++;
+  }
+
+  if(months >= 600) {
+    resEl.textContent = "Takes over 50 years to pay off.";
+    resEl.style.color = "#ff5c5c";
+    return;
+  }
+
+  const payoffDate = new Date();
+  payoffDate.setMonth(payoffDate.getMonth() + months);
+  const monthStr = payoffDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+  
+  resEl.textContent = `Payoff Date: ${monthStr} (${months} mos)`;
+  resEl.style.color = "#f5b942";
+}
+
+// ===== 9. FLOW TRACKER LOGIC =====
 function toggleIncomeMisc() {
   const sel = document.getElementById("incomeAccountSelect");
   const misc = document.getElementById("incomeMiscInput");
@@ -1278,7 +1492,6 @@ function generateYearlyReport() {
   const container = document.getElementById("reportContainer");
   if (!container) return;
   
-  // A. Calculate Flow Totals (Income, Taxes, Retirement)
   const getYearlyFlow = (tracker) => {
     let total = 0;
     let rothTotal = 0;
@@ -1303,7 +1516,6 @@ function generateYearlyReport() {
   const taxYTD = getYearlyFlow('tax').total;
   const retFlow = getYearlyFlow('retirement');
 
-  // B. Calculate Snapshot Deltas (Start vs End of Year)
   let monthsSet = new Set();
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
@@ -1331,7 +1543,6 @@ function generateYearlyReport() {
     endNW = getNW(endMonth);
   }
 
-  // C. Render the Report
   let html = "";
   if (monthsSet.size === 0) {
     html = `<div style='color:#9aa7b6; text-align:center; padding: 20px;'>No data recorded for ${year}.</div>`;
@@ -1373,11 +1584,66 @@ function generateYearlyReport() {
       </div>
     `;
   }
-  
   container.innerHTML = html;
 }
 
-// ===== 12. NAVIGATION & INIT =====
+// ===== 12. DATA EXPORT / IMPORT ENGINE =====
+function exportData() {
+  let exportObj = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith(STORAGE_PREFIX)) {
+      exportObj[key] = localStorage.getItem(key);
+    }
+  }
+  
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href", dataStr);
+  const dateStr = new Date().toISOString().split('T')[0];
+  downloadAnchorNode.setAttribute("download", `BillsOps_Backup_${dateStr}.json`);
+  document.body.appendChild(downloadAnchorNode); // required for firefox
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+}
+
+function importData() {
+  const fileInput = document.getElementById('importFileInput');
+  if(!fileInput.files.length) return alert("Please select a backup file first.");
+  
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    try {
+      const importedData = JSON.parse(e.target.result);
+      if(!confirm("Warning: This will overwrite your current app data. Proceed?")) return;
+      
+      // Wipe current v12 data
+      let keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        if(localStorage.key(i).startsWith(STORAGE_PREFIX)) keysToRemove.push(localStorage.key(i));
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      
+      // Load imported data
+      Object.keys(importedData).forEach(key => {
+        if(key.startsWith(STORAGE_PREFIX)) {
+           localStorage.setItem(key, importedData[key]);
+        }
+      });
+      
+      alert("Import successful! The app will now reload.");
+      location.reload();
+      
+    } catch(err) {
+      alert("Invalid backup file.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ===== 13. NAVIGATION & INIT =====
 function toggleMenu() {
   const back = document.getElementById("menuBackdrop");
   const drawer = document.getElementById("menuDrawer");
@@ -1403,7 +1669,10 @@ function navigateTo(pageId) {
   if (pageId === 'report') generateYearlyReport();
   
   if (pageId === 'investment') setTimeout(() => renderSnapshotGraph('investment', 'investmentGraphContainer', '#2aa6ff'), 10);
-  if (pageId === 'debt') setTimeout(() => renderSnapshotGraph('debt', 'debtGraphContainer', '#ff5c5c'), 10);
+  if (pageId === 'debt') {
+    setTimeout(() => renderSnapshotGraph('debt', 'debtGraphContainer', '#ff5c5c'), 10);
+    loadPayoffBalance();
+  }
   if (pageId === 'savings') setTimeout(() => renderSnapshotGraph('savings', 'savingsGraphContainer', '#f5b942'), 10);
   if (pageId === 'networth') setTimeout(renderNetWorthGraph, 10);
 }
@@ -1425,5 +1694,3 @@ document.addEventListener("DOMContentLoaded", () => {
   if(retDate) retDate.value = todayStr;
 });
 </script>
-</body>
-</html>
