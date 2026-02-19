@@ -159,15 +159,16 @@ input, select, textarea {
 
 <div class="container" style="padding-bottom: 0;">
   <div class="card" id="activeMonthCard">
-    <div class="row" style="border:none; padding:0; align-items:flex-start;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 14px;">
       <div>
         <div style="font-weight: 800; color:#9aa7b6;">ACTIVE PERIOD</div>
         <div id="currentPhaseBadge" style="font-size:11px; color:#2aa6ff; font-weight:800; margin-top:6px;">TODAY: PHASE --</div>
       </div>
-      <div style="display:flex; gap:8px;">
-        <select id="activeYearSelect" style="width:auto; padding:10px;"></select>
-        <select id="activeMonthSelect" style="width:auto; padding:10px;"></select>
-      </div>
+      <button class="btnSmall" style="border-color:#2aa6ff; color:#2aa6ff; padding: 10px 16px; font-weight:900;" onclick="navigateTo('home')">⌂ HOME</button>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <select id="activeYearSelect" style="flex:1; padding:12px;"></select>
+      <select id="activeMonthSelect" style="flex:1; padding:12px;"></select>
     </div>
   </div>
 </div>
@@ -221,7 +222,6 @@ input, select, textarea {
     <div class="row" style="border:none; padding:0;">
       <div style="font-weight:800;">Monthly Bills</div>
       <div style="display:flex; gap:8px;">
-        <button class="btnSmall" style="border-color:#1b2533; color:#9aa7b6;" onclick="navigateTo('home')">⌂ HOME</button>
         <button class="btnSmall" onclick="showAddBillForm()">+ BILL</button>
         <button class="btnSmall" style="border-color:#f5b942; color:#f5b942;" onclick="showAddDebtBillForm()">+ DEBT PMT</button>
       </div>
@@ -271,7 +271,6 @@ input, select, textarea {
   <div class="card">
     <div class="row" style="border:none; padding:0;">
       <div style="font-weight:800;">Debt Snapshot</div>
-      <button class="btnSmall" style="border-color:#1b2533; color:#9aa7b6;" onclick="navigateTo('home')">⌂ HOME</button>
     </div>
   </div>
   <div class="card">
@@ -290,7 +289,6 @@ input, select, textarea {
   <div class="card">
     <div class="row" style="border:none; padding:0;">
       <div style="font-weight:800;">Investments Snapshot</div>
-      <button class="btnSmall" style="border-color:#1b2533; color:#9aa7b6;" onclick="navigateTo('home')">⌂ HOME</button>
     </div>
   </div>
   <div class="card">
@@ -314,7 +312,6 @@ input, select, textarea {
   <div class="card">
     <div class="row" style="border:none; padding:0;">
       <div style="font-weight:800;">Income Tracker (YTD)</div>
-      <button class="btnSmall" style="border-color:#1b2533; color:#9aa7b6;" onclick="navigateTo('home')">⌂ HOME</button>
     </div>
   </div>
   <div class="card">
@@ -333,7 +330,6 @@ input, select, textarea {
   <div class="card">
     <div class="row" style="border:none; padding:0;">
       <div style="font-weight:800;">Tax Withholdings (YTD)</div>
-      <button class="btnSmall" style="border-color:#1b2533; color:#9aa7b6;" onclick="navigateTo('home')">⌂ HOME</button>
     </div>
   </div>
   <div class="card">
