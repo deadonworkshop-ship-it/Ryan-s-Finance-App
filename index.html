@@ -159,8 +159,11 @@ input, select, textarea {
 
 <div class="container" style="padding-bottom: 0;">
   <div class="card" id="activeMonthCard">
-    <div class="row" style="border:none; padding:0;">
-      <div style="font-weight: 800; color:#9aa7b6;">ACTIVE PERIOD</div>
+    <div class="row" style="border:none; padding:0; align-items:flex-start;">
+      <div>
+        <div style="font-weight: 800; color:#9aa7b6;">ACTIVE PERIOD</div>
+        <div id="currentPhaseBadge" style="font-size:11px; color:#2aa6ff; font-weight:800; margin-top:6px;">TODAY: PHASE --</div>
+      </div>
       <div style="display:flex; gap:8px;">
         <select id="activeYearSelect" style="width:auto; padding:10px;"></select>
         <select id="activeMonthSelect" style="width:auto; padding:10px;"></select>
@@ -170,8 +173,9 @@ input, select, textarea {
 </div>
 
 <div class="container page" id="pageHome">
+  
   <div class="card">
-    <div style="font-size:12px;color:#9aa7b6;">YOU SHOULD HAVE</div>
+    <div style="font-size:12px;color:#9aa7b6; font-weight:800;" id="shouldHaveLabel">YOU SHOULD HAVE</div>
     <div class="big" id="shouldHave">$0.00</div>
     <div style="margin-top:14px;">
       <div style="font-size:12px;color:#9aa7b6;">CURRENT BALANCE</div>
@@ -183,8 +187,33 @@ input, select, textarea {
         <button class="btnSmall" onclick="openBalanceModal()">UPDATE</button>
       </div>
     </div>
-    <div class="row"><div>AVAILABLE FOR DEBT</div><div id="avail">$0.00</div></div>
+    <div class="row" style="margin-top:10px; border-top:1px solid #1b2533; padding-top:16px;">
+      <div>AVAILABLE FOR DEBT</div>
+      <div id="avail" style="font-weight:900; font-size:18px;">$0.00</div>
+    </div>
   </div>
+
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">MONTHLY BILLS PROGRESS</div>
+    <div style="width:100%; background:#1b2533; border-radius:8px; height:12px; overflow:hidden;">
+      <div id="billProgressBar" style="width:0%; background:#2bd576; height:100%; transition:width 0.4s ease;"></div>
+    </div>
+    <div id="billProgressText" style="font-size:12px; margin-top:8px; text-align:right; font-weight:800; color:#9aa7b6;">0% Paid</div>
+  </div>
+
+  <div class="card" id="nextBillsCard">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">NEXT UP (UNPAID BILLS)</div>
+    <div id="nextBillsList"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;color:#9aa7b6;margin-bottom:10px;">QUICK GLANCE TOTALS</div>
+    <div class="row"><div>TOTAL PORTFOLIO</div><div id="glancePortfolio" style="font-weight:900;">$0</div></div>
+    <div class="row"><div>TOTAL DEBT</div><div id="glanceDebt" style="font-weight:900;">$0</div></div>
+    <div class="row"><div>YTD INCOME</div><div id="glanceIncome" style="font-weight:900;">$0</div></div>
+    <div class="row"><div>YTD TAXES</div><div id="glanceTaxes" style="font-weight:900;">$0</div></div>
+  </div>
+
 </div>
 
 <div class="container page" id="pageBills" style="display:none;">
@@ -192,6 +221,7 @@ input, select, textarea {
     <div class="row" style="border:none; padding:0;">
       <div style="font-weight:800;">Monthly Bills</div>
       <div style="display:flex; gap:8px;">
+        <button class="btnSmall" style="border-color:#1b2533; color:#9aa7b6;" onclick="navigateTo('home')">⌂ HOME</button>
         <button class="btnSmall" onclick="showAddBillForm()">+ BILL</button>
         <button class="btnSmall" style="border-color:#f5b942; color:#f5b942;" onclick="showAddDebtBillForm()">+ DEBT PMT</button>
       </div>
@@ -241,6 +271,7 @@ input, select, textarea {
   <div class="card">
     <div class="row" style="border:none; padding:0;">
       <div style="font-weight:800;">Debt Snapshot</div>
+      <button class="btnSmall" style="border-color:#1b2533; color:#9aa7b6;" onclick="navigateTo('home')">⌂ HOME</button>
     </div>
   </div>
   <div class="card">
@@ -259,6 +290,7 @@ input, select, textarea {
   <div class="card">
     <div class="row" style="border:none; padding:0;">
       <div style="font-weight:800;">Investments Snapshot</div>
+      <button class="btnSmall" style="border-color:#1b2533; color:#9aa7b6;" onclick="navigateTo('home')">⌂ HOME</button>
     </div>
   </div>
   <div class="card">
@@ -282,6 +314,7 @@ input, select, textarea {
   <div class="card">
     <div class="row" style="border:none; padding:0;">
       <div style="font-weight:800;">Income Tracker (YTD)</div>
+      <button class="btnSmall" style="border-color:#1b2533; color:#9aa7b6;" onclick="navigateTo('home')">⌂ HOME</button>
     </div>
   </div>
   <div class="card">
@@ -300,6 +333,7 @@ input, select, textarea {
   <div class="card">
     <div class="row" style="border:none; padding:0;">
       <div style="font-weight:800;">Tax Withholdings (YTD)</div>
+      <button class="btnSmall" style="border-color:#1b2533; color:#9aa7b6;" onclick="navigateTo('home')">⌂ HOME</button>
     </div>
   </div>
   <div class="card">
@@ -366,7 +400,7 @@ const DEFAULT_CATEGORIES = {
     "House Mortgage", "Land Mortgage", "Tesla Loan", "Highlander Loan", 
     "USAA Signature Credit Card", "USAA Platinum Credit Card", "AMEX Platinum Card", 
     "AMEX Blue Cash Credit Card", "AMEX Delta Credit Card", "AMEX Bonvoy Card", 
-    "Amazon Prime Credit Card", "Amazon Prime Business Credit Card", "Chase CC"
+    "Amazon Prime Credit Card", "Amazon Prime Business Credit Card" 
   ],
   income: ["USAF", "VA", "United", "UC Health", "FastCap", "Miscellaneous"],
   tax: [
@@ -390,8 +424,8 @@ const PRELOADED_BALANCES = {
   }
 };
 
-// ===== 1. CORE STATE & STORAGE (v6 - RETAINED) =====
-const STORAGE_PREFIX = "bills_ops_v6_";
+// ===== 1. CORE STATE & STORAGE (v7 - FRESH WIPE FOR CLEANUP) =====
+const STORAGE_PREFIX = "bills_ops_v7_";
 const getStorage = (key, defaultVal) => {
   try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + key)) || defaultVal; } 
   catch { return defaultVal; }
@@ -530,10 +564,12 @@ function saveBalanceFromModal() {
 // ===== 4. FORMATTING =====
 function formatMoney(amount) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0); }
 
-// ===== 5. UI RENDERERS (HOME PAGE MATH) =====
+// ===== 5. UI RENDERERS (HOME PAGE DASHBOARD MATH) =====
 function renderDashboard() {
   const bal = parseFloat(getStorage("current_balance", 0));
   const updatedTs = getStorage("balance_updated_at", null);
+  
+  // 1. Balance & Timestamp
   document.getElementById("currentBalance").textContent = formatMoney(bal);
   if (updatedTs) {
     const diffMins = Math.floor((Date.now() - updatedTs) / 60000);
@@ -541,14 +577,68 @@ function renderDashboard() {
     if(diffMins === 0) timeString = "Just now";
     document.getElementById("updatedAgo").textContent = `UPDATED — ${timeString}`;
   }
+
   const activeMonth = getActiveMonth();
   const monthBills = getStorage("bills", []).filter(b => b.month === activeMonth);
-  const unpaidTotal = monthBills.filter(b => !b.paid).reduce((sum, b) => sum + b.amount, 0);
-  document.getElementById("shouldHave").textContent = formatMoney(unpaidTotal); 
-  const available = bal - unpaidTotal;
+  
+  // 2. Phase-Aware Math 
+  const today = new Date();
+  const sysPhase = today.getDate() <= 15 ? 1 : 2;
+  document.getElementById("currentPhaseBadge").textContent = `TODAY: PHASE ${sysPhase} ${sysPhase===1 ? "(1st - 15th)" : "(16th - End)"}`;
+
+  // Only target the unpaid bills for the active system phase
+  const targetPhaseBills = monthBills.filter(b => b.phase === sysPhase && !b.paid);
+  const unpaidTargetTotal = targetPhaseBills.reduce((sum, b) => sum + b.amount, 0);
+
+  document.getElementById("shouldHaveLabel").textContent = `YOU SHOULD HAVE (PHASE ${sysPhase} UNPAID)`;
+  document.getElementById("shouldHave").textContent = formatMoney(unpaidTargetTotal); 
+  
+  const available = bal - unpaidTargetTotal;
   const availEl = document.getElementById("avail");
   availEl.textContent = formatMoney(available);
   availEl.style.color = available >= 0 ? "#2bd576" : "#ff5c5c"; 
+
+  // 3. Progress Bar Math
+  const totalMonthBills = monthBills.reduce((s, b) => s + b.amount, 0);
+  const paidMonthBills = monthBills.filter(b => b.paid).reduce((s, b) => s + b.amount, 0);
+  const pct = totalMonthBills === 0 ? 0 : Math.round((paidMonthBills / totalMonthBills) * 100);
+  
+  document.getElementById("billProgressBar").style.width = `${pct}%`;
+  document.getElementById("billProgressText").textContent = `${pct}% Paid (${formatMoney(paidMonthBills)} / ${formatMoney(totalMonthBills)})`;
+
+  // 4. Next 3 Bills Preview
+  const unpaidAll = monthBills.filter(b => !b.paid).sort((a,b) => a.phase - b.phase); // Phase 1 bills first
+  const next3 = unpaidAll.slice(0, 3);
+  const nextList = document.getElementById("nextBillsList");
+  nextList.innerHTML = "";
+  
+  if(next3.length === 0) {
+    nextList.innerHTML = "<div style='color:#2bd576; font-size:14px; font-weight:800; padding-top:8px;'>All bills paid for the month!</div>";
+  } else {
+    next3.forEach(b => {
+      const tagColor = b.phase === 1 ? "#2aa6ff" : "#9aa7b6";
+      nextList.innerHTML += `
+        <div class="row" style="padding:10px 0; align-items:center;">
+          <div>
+            <div style="font-weight:800;">${b.name}</div>
+            <div style="font-size:11px; color:${tagColor}; font-weight:700; margin-top:2px;">PHASE ${b.phase}</div>
+          </div>
+          <div style="font-weight:900; font-size:16px;">${formatMoney(b.amount)}</div>
+        </div>
+      `;
+    });
+  }
+
+  // 5. Quick Glance Snapshot Totals
+  const sumTracker = (tracker) => {
+    const data = getStorage(`${tracker}_${activeMonth}`, {});
+    return Object.values(data).reduce((s, v) => s + v, 0);
+  };
+  
+  document.getElementById("glancePortfolio").textContent = formatMoney(sumTracker('investment'));
+  document.getElementById("glanceDebt").textContent = formatMoney(sumTracker('debt'));
+  document.getElementById("glanceIncome").textContent = formatMoney(sumTracker('income'));
+  document.getElementById("glanceTaxes").textContent = formatMoney(sumTracker('tax'));
 }
 
 // ===== 6. MONTHLY BILLS LOGIC =====
@@ -652,6 +742,7 @@ function updateTracker(trackerId) {
   renderTrackerList(trackerId);
   
   if (trackerId === 'investment') setTimeout(renderInvestmentGraph, 10);
+  renderDashboard(); // Updates Quick Glance on home screen instantly
 }
 
 function renderTrackerList(trackerId) {
@@ -720,10 +811,9 @@ function renderInvestmentGraph() {
     
     points += `${x},${y} `;
     
-    // Parse the date to get "Feb '26" format
     const dateObj = new Date(pt.month + "-02"); 
     const monthStr = dateObj.toLocaleString('en-US', { month: 'short' });
-    const yearStr = pt.month.substring(2, 4); // Grabs the "26" from "2026"
+    const yearStr = pt.month.substring(2, 4); 
     const labelText = `${monthStr} '${yearStr}`;
     
     labels += `<circle cx="${x}" cy="${y}" r="4" fill="#2aa6ff"/>`;
