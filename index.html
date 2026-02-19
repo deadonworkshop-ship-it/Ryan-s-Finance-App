@@ -180,7 +180,6 @@ input, select, textarea {
 </div>
 
 <div class="container page" id="pageHome">
-  
   <div class="card">
     <div style="font-size:12px;color:#9aa7b6; font-weight:800;" id="shouldHaveLabel">YOU SHOULD HAVE</div>
     <div class="big" id="shouldHave">$0.00</div>
@@ -590,6 +589,41 @@ input, select, textarea {
   </div>
 </div>
 
+<div id="editBillBackdrop" onclick="closeEditBillModal()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:90;"></div>
+<div id="editBillModal" style="display:none; position:fixed; inset:0; z-index:100; padding:16px; align-items:center; justify-content:center;">
+  <div style="width:100%; max-width:420px; background:#101722; border:1px solid #1b2533; border-radius:14px; overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid #1b2533;">
+      <div style="font-weight:900;">Edit Monthly Bill</div>
+      <button class="cancelBtn" onclick="closeEditBillModal()" style="border:none; padding:0;">CLOSE</button>
+    </div>
+    <div style="padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+      <input type="hidden" id="editBillId" />
+      <div>
+        <div style="font-size:11px; color:#9aa7b6; font-weight:bold; margin-bottom:4px;">BILL NAME</div>
+        <input id="editBillName" type="text" />
+      </div>
+      <div>
+        <div style="font-size:11px; color:#9aa7b6; font-weight:bold; margin-bottom:4px;">EXACT AMOUNT THIS MONTH</div>
+        <input id="editBillAmount" type="text" inputmode="decimal" />
+      </div>
+      <div>
+        <div style="font-size:11px; color:#9aa7b6; font-weight:bold; margin-bottom:4px;">POST DATE (Optional)</div>
+        <input id="editBillDate" type="date" />
+      </div>
+      <div>
+        <div style="font-size:11px; color:#9aa7b6; font-weight:bold; margin-bottom:4px;">ACTIVE PHASE</div>
+        <select id="editBillPhase">
+          <option value="1">Phase 1 (1st - 15th)</option>
+          <option value="2">Phase 2 (16th+)</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button class="primaryBtn" style="flex:1;" onclick="saveEditBillModal()">SAVE CHANGES</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
 
@@ -615,6 +649,7 @@ const BASELINE_BILLS = [
  {name:"Xcel Energy",amount:300.00,phase:2},
   { name: "BAM Internet", amount: 80.10, phase: 2 }
 ];
+
 
 // ==========================================
 // 🚨 YOUR DEFAULT TRACKER CATEGORIES 🚨
@@ -687,7 +722,6 @@ const getStorage = (key, defaultVal) => {
 const setStorage = (key, val) => localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(val));
 
 function initTrackersForMonth(yyyyMM) {
-  // Snapshot Trackers
   ['investment', 'debt', 'savings', 'assumptions'].forEach(tracker => {
     const key = `${tracker}_${yyyyMM}`;
     let data = getStorage(key, null);
@@ -724,7 +758,6 @@ function initTrackersForMonth(yyyyMM) {
     }
   });
 
-  // Flow Trackers 
   ['income', 'tax', 'retirement'].forEach(tracker => {
     const key = `${tracker}_${yyyyMM}`;
     let data = getStorage(key, null);
@@ -744,7 +777,6 @@ function initTrackersForMonth(yyyyMM) {
     }
   });
 
-  // Unique Dropdowns 
   const populateSpecialDropdown = (elId, categories, suffix = "") => {
     const el = document.getElementById(elId);
     if (el) {
@@ -762,7 +794,6 @@ function initTrackersForMonth(yyyyMM) {
   populateSpecialDropdown('payoffAccountSelect', DEFAULT_CATEGORIES.debt);
   populateSpecialDropdown('goalAccountSelect', DEFAULT_CATEGORIES.savings);
 
-  // Initialize Savings Goals Object globally
   let goals = getStorage("savings_goals", null);
   if (!goals) setStorage("savings_goals", PRELOADED_GOALS);
 }
@@ -860,7 +891,7 @@ function saveBalanceFromModal() {
 // ===== 4. FORMATTING =====
 function formatMoney(amount) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0); }
 
-// ===== 5. UI RENDERERS (HOME DASHBOARD & GUILT-FREE MATH) =====
+// ===== 5. UI RENDERERS (HOME DASHBOARD) =====
 function sumSnapshot(tracker, month) {
   const data = getStorage(`${tracker}_${month}`, {});
   return Object.values(data).reduce((s, v) => s + v, 0);
@@ -889,7 +920,6 @@ function renderDashboard() {
   const sysPhase = today.getDate() <= 15 ? 1 : 2;
   document.getElementById("currentPhaseBadge").textContent = `TODAY: PHASE ${sysPhase} ${sysPhase===1 ? "(1st - 15th)" : "(16th - End)"}`;
 
-  // Checking Math
   const targetPhaseBills = monthBills.filter(b => b.phase === sysPhase && !b.paid);
   const unpaidTargetTotal = targetPhaseBills.reduce((sum, b) => sum + b.amount, 0);
   document.getElementById("shouldHaveLabel").textContent = `YOU SHOULD HAVE (PHASE ${sysPhase} UNPAID)`;
@@ -900,11 +930,9 @@ function renderDashboard() {
   availEl.textContent = formatMoney(available);
   availEl.style.color = available >= 0 ? "#2bd576" : "#ff5c5c"; 
 
-  // Guilt-Free Spending Math (IRA ISOLATION FIX)
   const mtdIncome = sumFlowMonth('income', activeMonth);
   const mtdTaxes = sumFlowMonth('tax', activeMonth);
   
-  // Only count accounts with "IRA" in the name toward Guilt-Free subtraction
   const retirementData = getStorage(`retirement_${activeMonth}`, []);
   const mtdIraRetirement = retirementData
     .filter(txn => txn.account.includes("IRA"))
@@ -915,13 +943,11 @@ function renderDashboard() {
   const guiltFree = (mtdIncome - mtdTaxes) - totalMonthBillsFootprint - mtdIraRetirement;
   document.getElementById("guiltFreeTotal").textContent = formatMoney(guiltFree);
 
-  // Bill Progress
   const paidMonthBills = monthBills.filter(b => b.paid).reduce((s, b) => s + b.amount, 0);
   const pct = totalMonthBillsFootprint === 0 ? 0 : Math.round((paidMonthBills / totalMonthBillsFootprint) * 100);
   document.getElementById("billProgressBar").style.width = `${pct}%`;
   document.getElementById("billProgressText").textContent = `${pct}% Paid (${formatMoney(paidMonthBills)} / ${formatMoney(totalMonthBillsFootprint)})`;
 
-  // Next 3 Bills
   const unpaidAll = monthBills.filter(b => !b.paid).sort((a,b) => a.phase - b.phase); 
   const next3 = unpaidAll.slice(0, 3);
   const nextList = document.getElementById("nextBillsList");
@@ -943,7 +969,6 @@ function renderDashboard() {
     });
   }
 
-  // Quick Glance Updates
   const sumFlowYTD = (tracker) => {
     const year = activeMonth.split('-')[0];
     let total = 0;
@@ -982,31 +1007,53 @@ function renderNetWorth() {
   if(elTotal) elTotal.textContent = formatMoney(totalAssets - totalLiabilities);
 }
 
-// ===== 6. MONTHLY BILLS LOGIC =====
+// ===== 6. MONTHLY BILLS LOGIC (UPDATED WITH DATE SORTING & EDITING) =====
 function renderBills() {
   const activeMonth = getActiveMonth();
   let allBills = getStorage("bills", []);
   let monthBills = allBills.filter(b => b.month === activeMonth);
+  
   if (monthBills.length === 0) {
     const newBills = BASELINE_BILLS.map((b, i) => ({ ...b, month: activeMonth, paid: false, id: Date.now() + i }));
     allBills = allBills.concat(newBills);
     setStorage("bills", allBills);
     monthBills = newBills;
   }
+  
+  // Sort Chronologically (Items without a date fall to the bottom)
+  monthBills.sort((a, b) => {
+    let dA = a.date || "9999-12-31";
+    let dB = b.date || "9999-12-31";
+    return dA.localeCompare(dB);
+  });
+
   const phase1List = document.getElementById("phase1BillsList");
   const phase2List = document.getElementById("phase2BillsList");
   phase1List.innerHTML = ""; phase2List.innerHTML = "";
+  
   monthBills.forEach(bill => {
     const row = document.createElement("div");
     row.className = "row";
     const textClass = bill.paid ? "paid-text" : "";
+    
+    // Display Date nicely if it exists
+    let dateStr = "Tap to edit info";
+    if (bill.date) {
+        dateStr = "Post Date: " + new Date(bill.date + "T00:00:00").toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+    }
+
     row.innerHTML = `
       <div style="display:flex; align-items:center; width:100%; gap:12px;">
         <input type="checkbox" class="toggleSwitch" ${bill.paid ? 'checked' : ''} onchange="toggleBillPaid(${bill.id})" style="flex-shrink:0;">
-        <div style="flex:1; display:flex; justify-content:space-between; align-items:center;">
-          <div style="font-weight:800; font-size:16px;" class="${textClass}">${bill.name}</div>
+        
+        <div style="flex:1; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openEditBillModal(${bill.id})">
+          <div style="display:flex; flex-direction:column; gap:2px;">
+            <div style="font-weight:800; font-size:16px;" class="${textClass}">${bill.name}</div>
+            <div style="font-size:11px; color:#9aa7b6; font-weight:700;" class="${textClass}">${dateStr}</div>
+          </div>
           <div style="font-weight:900; font-size:18px;" class="${textClass}">${formatMoney(bill.amount)}</div>
         </div>
+
         <button class="cancelBtn" style="border:none; padding:8px; font-size:16px; font-weight:bold; flex-shrink:0;" onclick="deleteBill(${bill.id})">✕</button>
       </div>
     `;
@@ -1015,6 +1062,58 @@ function renderBills() {
   });
   renderDashboard(); 
 }
+
+// EDIT BILL MODAL LOGIC
+function openEditBillModal(id) {
+  const allBills = getStorage("bills", []);
+  const bill = allBills.find(b => b.id === id);
+  if(!bill) return;
+
+  document.getElementById("editBillId").value = bill.id;
+  document.getElementById("editBillName").value = bill.name;
+  document.getElementById("editBillAmount").value = bill.amount;
+  document.getElementById("editBillDate").value = bill.date || "";
+  document.getElementById("editBillPhase").value = bill.phase;
+
+  document.getElementById("editBillBackdrop").style.display = "block";
+  document.getElementById("editBillModal").style.display = "flex";
+}
+
+function closeEditBillModal() {
+  document.getElementById("editBillBackdrop").style.display = "none";
+  document.getElementById("editBillModal").style.display = "none";
+}
+
+function saveEditBillModal() {
+  const id = parseInt(document.getElementById("editBillId").value, 10);
+  const name = document.getElementById("editBillName").value;
+  const amount = parseFloat(document.getElementById("editBillAmount").value || 0);
+  const date = document.getElementById("editBillDate").value;
+  const phase = parseInt(document.getElementById("editBillPhase").value, 10);
+
+  if(!name || amount < 0) return alert("Please enter a valid bill name and amount.");
+
+  let allBills = getStorage("bills", []);
+  const idx = allBills.findIndex(b => b.id === id);
+  if(idx > -1) {
+     allBills[idx].name = name;
+     allBills[idx].amount = amount;
+     allBills[idx].date = date; 
+     allBills[idx].phase = phase;
+     setStorage("bills", allBills);
+     renderBills();
+  }
+  closeEditBillModal();
+}
+
+// Auto-change Phase dropdown based on selected date in Edit Modal
+document.getElementById("editBillDate").addEventListener("change", (e) => {
+    if(e.target.value) {
+        const day = parseInt(e.target.value.split('-')[2], 10);
+        document.getElementById("editBillPhase").value = day <= 15 ? "1" : "2";
+    }
+});
+
 
 function showAddBillForm() { 
   document.getElementById("addBillForm").style.display = "flex"; 
